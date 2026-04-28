@@ -7,8 +7,26 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Animasi sedikit untuk tombol musik */
+        @keyframes pulse-soft {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .music-active { animation: pulse-soft 2s infinite; }
+    </style>
 </head>
 <body class="bg-slate-100 min-h-screen font-sans">
+
+    <div class="fixed bottom-5 right-5 z-50">
+        <button onclick="toggleMusic()" id="music-btn" class="bg-white p-4 rounded-full shadow-2xl border-2 border-blue-500 hover:bg-blue-50 transition-all">
+            <span id="music-icon" class="text-2xl">🎵</span>
+        </button>
+        <audio id="bg-music" loop>
+            <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+        </audio>
+    </div>
 
     <div id="login-page" class="max-w-md mx-auto p-6 mt-20">
         <div class="bg-white rounded-2xl shadow-2xl p-8 border-t-8 border-blue-600">
@@ -64,8 +82,7 @@
                         <option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option>
                     </select>
                 </div>
-                <div id="user-summaries" class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-2">
-                    </div>
+                <div id="user-summaries" class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-2"></div>
             </div>
         </div>
 
@@ -89,7 +106,26 @@
     </div>
 
     <script>
-        // CONFIG FIREBASE
+        // --- LOGIKA MUSIK ---
+        const audio = document.getElementById('bg-music');
+        const musicBtn = document.getElementById('music-btn');
+        const musicIcon = document.getElementById('music-icon');
+        let isPlaying = false;
+
+        function toggleMusic() {
+            if (isPlaying) {
+                audio.pause();
+                musicIcon.innerText = "🎵";
+                musicBtn.classList.remove('music-active');
+            } else {
+                audio.play();
+                musicIcon.innerText = "⏸️";
+                musicBtn.classList.add('music-active');
+            }
+            isPlaying = !isPlaying;
+        }
+
+        // --- KONFIGURASI FIREBASE ---
         const firebaseConfig = {
             apiKey: "AIzaSyDpkVNmfyqx76jfZV0T9N0pye4Q0p9G2lk",
             authDomain: "tabungankeluarga-a091f.firebaseapp.com",
@@ -123,9 +159,10 @@
                 document.getElementById('main-page').classList.remove('hidden');
                 document.getElementById('display-user').innerText = currentUser;
                 document.getElementById('date').valueAsDate = new Date();
-                const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
-                document.getElementById('filter-month').value = currentMonth;
                 
+                // Mulai musik otomatis saat login (jika diizinkan browser)
+                toggleMusic();
+
                 if(currentUser === "AYAH") {
                     document.getElementById('dashboard-ayah').classList.remove('hidden');
                 }
@@ -135,6 +172,7 @@
             }
         }
 
+        // --- FUNGSI DATA (SIMPAN, HAPUS, LOAD) ---
         function saveData() {
             const desc = document.getElementById('desc').value;
             const amount = document.getElementById('amount').value;
@@ -159,16 +197,15 @@
         }
 
         function deleteData(id, penginput) {
-            // LOGIKA: Hanya penginput data atau AYAH yang boleh menghapus
             if (currentUser === "AYAH" || currentUser === penginput) {
-                if (confirm("Apakah kamu yakin ingin menghapus/koreksi data ini?")) {
+                if (confirm("Apakah kamu yakin ingin menghapus data ini?")) {
                     db.ref('transaksi/' + id).remove();
                 }
             }
         }
 
         function loadReport() {
-            const selectedMonth = document.getElementById('filter-month').value;
+            const selectedMonth = document.getElementById('filter-month') ? document.getElementById('filter-month').value : String(new Date().getMonth() + 1).padStart(2, '0');
             
             db.ref('transaksi').on('value', (snapshot) => {
                 const tableBody = document.getElementById('table-data');
@@ -186,50 +223,39 @@
 
                     if (itemMonth === selectedMonth) {
                         dataArray.push({ id: childSnapshot.key, ...item });
-                        
                         if (!userTotals[item.penginput]) userTotals[item.penginput] = { in: 0, out: 0 };
                         if (item.tipe === 'in') userTotals[item.penginput].in += item.jumlah;
                         else userTotals[item.penginput].out += item.jumlah;
                     }
                 });
 
-                if(currentUser === "AYAH") {
+                if(currentUser === "AYAH" && summaryDiv) {
                     for (const user in userTotals) {
-                        const card = `
+                        summaryDiv.innerHTML += `
                             <div class="bg-slate-800 p-3 rounded-xl border border-slate-700">
                                 <p class="font-bold text-blue-300 text-[11px] uppercase mb-1">${user}</p>
                                 <p class="text-green-400 text-xs font-bold font-mono">In: ${userTotals[user].in.toLocaleString()}</p>
                                 <p class="text-red-400 text-xs font-bold font-mono">Out: ${userTotals[user].out.toLocaleString()}</p>
-                            </div>
-                        `;
-                        summaryDiv.innerHTML += card;
+                            </div>`;
                     }
                 }
 
-                // Urutkan Nominal Terbesar ke Terkecil
                 dataArray.sort((a, b) => b.jumlah - a.jumlah);
-
                 dataArray.forEach((item) => {
                     const color = item.tipe === 'in' ? 'text-green-600' : 'text-red-600';
-                    
-                    // CEK IZIN HAPUS: Munculkan tombol jika user=ayah atau user=penginput
                     const canDelete = (currentUser === "AYAH" || currentUser === item.penginput);
                     const btnHapus = canDelete ? 
                         `<button onclick="deleteData('${item.id}', '${item.penginput}')" class="text-red-500 hover:text-red-700 text-xl font-bold p-1">✕</button>` : 
                         `<span class="text-gray-300 text-xs italic">🔒</span>`;
 
-                    const row = `
+                    tableBody.innerHTML += `
                         <tr class="hover:bg-blue-50 transition border-b border-gray-100">
                             <td class="p-3 text-[10px] text-gray-400 font-mono">${item.tanggal}</td>
                             <td class="p-3 font-extrabold text-blue-900 text-[11px]">${item.penginput}</td>
                             <td class="p-3 text-xs text-gray-600 font-medium">${item.keterangan}</td>
                             <td class="p-3 font-black ${color} text-right text-xs">Rp ${item.jumlah.toLocaleString()}</td>
-                            <td class="p-3 text-center">
-                                ${btnHapus}
-                            </td>
-                        </tr>
-                    `;
-                    tableBody.innerHTML += row;
+                            <td class="p-3 text-center">${btnHapus}</td>
+                        </tr>`;
                 });
             });
         }
