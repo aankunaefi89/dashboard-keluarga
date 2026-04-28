@@ -16,7 +16,7 @@
             <div class="space-y-5">
                 <div>
                     <label class="block text-sm font-bold text-gray-600 mb-2">Pilih Anggota:</label>
-                    <select id="user-login" class="w-full border-2 p-3 rounded-xl focus:border-blue-500 outline-none">
+                    <select id="user-login" class="w-full border-2 p-3 rounded-xl focus:border-blue-500 outline-none font-bold">
                         <option value="AYAH">AYAH</option>
                         <option value="BUNDA">BUNDA</option>
                         <option value="AA GIBRAN">AA GIBRAN</option>
@@ -40,39 +40,39 @@
         </div>
 
         <div class="bg-white rounded-xl shadow-lg p-6">
-            <h3 class="text-lg font-bold mb-4 flex items-center">📝 Input Transaksi</h3>
+            <h3 class="text-lg font-bold mb-4 flex items-center text-gray-700">📝 Input Transaksi</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <input type="text" id="desc" class="border-2 p-3 rounded-lg outline-none focus:border-blue-400" placeholder="Keterangan (Contoh: Sisa Jajan)">
                 <input type="number" id="amount" class="border-2 p-3 rounded-lg outline-none focus:border-blue-400" placeholder="Jumlah Nominal (Rp)">
                 <input type="date" id="date" class="border-2 p-3 rounded-lg outline-none focus:border-blue-400">
-                <select id="type" class="border-2 p-3 rounded-lg outline-none focus:border-blue-400">
-                    <option value="in">PEMASUKAN (+)</option>
-                    <option value="out">PENGELUARAN (-)</option>
+                <select id="type" class="border-2 p-3 rounded-lg outline-none focus:border-blue-400 font-semibold">
+                    <option value="in" class="text-green-600 font-bold">PEMASUKAN (+)</option>
+                    <option value="out" class="text-red-600 font-bold">PENGELUARAN (-)</option>
                 </select>
-                <button onclick="saveData()" class="md:col-span-2 bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700 shadow-md">SIMPAN DATA</button>
+                <button onclick="saveData()" class="md:col-span-2 bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700 shadow-md transition">SIMPAN DATA</button>
             </div>
         </div>
 
         <div id="dashboard-ayah" class="hidden space-y-6">
-            <div class="bg-slate-900 rounded-2xl shadow-xl p-6 text-white">
+            <div class="bg-slate-900 rounded-2xl shadow-xl p-6 text-white border-b-4 border-yellow-500">
                 <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-xl font-bold text-yellow-400">📊 Laporan Bulanan Ayah</h2>
-                    <select id="filter-month" onchange="loadReport()" class="bg-slate-800 text-white p-2 rounded-lg border border-slate-600">
+                    <h2 class="text-xl font-bold text-yellow-400 uppercase tracking-wider">📊 Laporan Bulanan Ayah</h2>
+                    <select id="filter-month" onchange="loadReport()" class="bg-slate-800 text-white p-2 rounded-lg border border-slate-600 outline-none">
                         <option value="01">Januari</option><option value="02">Februari</option><option value="03">Maret</option>
                         <option value="04">April</option><option value="05">Mei</option><option value="06">Juni</option>
                         <option value="07">Juli</option><option value="08">Agustus</option><option value="09">September</option>
                         <option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option>
                     </select>
                 </div>
-                <div id="user-summaries" class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
+                <div id="user-summaries" class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-2">
                     </div>
             </div>
         </div>
 
         <div class="bg-white rounded-xl shadow-lg p-6">
-            <h3 class="text-lg font-bold mb-4 text-gray-700 flex items-center">🏆 Urutan Tabungan Terbanyak</h3>
+            <h3 class="text-lg font-bold mb-4 text-gray-700 flex items-center">🏆 Peringkat Tabungan Terbanyak</h3>
             <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left">
+                <table class="w-full text-sm text-left border-collapse">
                     <thead class="bg-blue-600 text-white">
                         <tr>
                             <th class="p-3 rounded-tl-lg">Tgl</th>
@@ -131,7 +131,7 @@
                 }
                 loadReport();
             } else {
-                alert("Password salah!");
+                alert("❌ Password salah!");
             }
         }
 
@@ -152,15 +152,18 @@
                 });
                 document.getElementById('desc').value = "";
                 document.getElementById('amount').value = "";
-                alert("Berhasil disimpan!");
+                alert("✅ Berhasil disimpan!");
             } else {
-                alert("Lengkapi semua data!");
+                alert("⚠️ Lengkapi semua data!");
             }
         }
 
-        function deleteData(id) {
-            if (confirm("Hapus/Koreksi data ini?")) {
-                db.ref('transaksi/' + id).remove();
+        function deleteData(id, penginput) {
+            // LOGIKA: Hanya penginput data atau AYAH yang boleh menghapus
+            if (currentUser === "AYAH" || currentUser === penginput) {
+                if (confirm("Apakah kamu yakin ingin menghapus/koreksi data ini?")) {
+                    db.ref('transaksi/' + id).remove();
+                }
             }
         }
 
@@ -175,7 +178,7 @@
                 if(summaryDiv) summaryDiv.innerHTML = "";
 
                 let dataArray = [];
-                let userTotals = {}; // Untuk ringkasan Ayah
+                let userTotals = {};
 
                 snapshot.forEach((childSnapshot) => {
                     const item = childSnapshot.val();
@@ -184,40 +187,45 @@
                     if (itemMonth === selectedMonth) {
                         dataArray.push({ id: childSnapshot.key, ...item });
                         
-                        // Hitung total per orang (untuk Ayah)
                         if (!userTotals[item.penginput]) userTotals[item.penginput] = { in: 0, out: 0 };
                         if (item.tipe === 'in') userTotals[item.penginput].in += item.jumlah;
                         else userTotals[item.penginput].out += item.jumlah;
                     }
                 });
 
-                // Tampilan Ringkasan Nama untuk Ayah
                 if(currentUser === "AYAH") {
                     for (const user in userTotals) {
                         const card = `
-                            <div class="bg-slate-800 p-3 rounded-lg border border-slate-700 text-xs">
-                                <p class="font-bold text-blue-300 mb-1">${user}</p>
-                                <p class="text-green-400">Masuk: ${userTotals[user].in.toLocaleString()}</p>
-                                <p class="text-red-400">Keluar: ${userTotals[user].out.toLocaleString()}</p>
+                            <div class="bg-slate-800 p-3 rounded-xl border border-slate-700">
+                                <p class="font-bold text-blue-300 text-[11px] uppercase mb-1">${user}</p>
+                                <p class="text-green-400 text-xs font-bold font-mono">In: ${userTotals[user].in.toLocaleString()}</p>
+                                <p class="text-red-400 text-xs font-bold font-mono">Out: ${userTotals[user].out.toLocaleString()}</p>
                             </div>
                         `;
                         summaryDiv.innerHTML += card;
                     }
                 }
 
-                // URUTKAN DARI TERBESAR KE TERKECIL
+                // Urutkan Nominal Terbesar ke Terkecil
                 dataArray.sort((a, b) => b.jumlah - a.jumlah);
 
                 dataArray.forEach((item) => {
                     const color = item.tipe === 'in' ? 'text-green-600' : 'text-red-600';
+                    
+                    // CEK IZIN HAPUS: Munculkan tombol jika user=ayah atau user=penginput
+                    const canDelete = (currentUser === "AYAH" || currentUser === item.penginput);
+                    const btnHapus = canDelete ? 
+                        `<button onclick="deleteData('${item.id}', '${item.penginput}')" class="text-red-500 hover:text-red-700 text-xl font-bold p-1">✕</button>` : 
+                        `<span class="text-gray-300 text-xs italic">🔒</span>`;
+
                     const row = `
-                        <tr class="hover:bg-gray-50 transition">
-                            <td class="p-3 text-[10px] text-gray-400">${item.tanggal}</td>
-                            <td class="p-3 font-bold text-gray-700 text-xs">${item.penginput}</td>
-                            <td class="p-3 text-xs">${item.keterangan}</td>
-                            <td class="p-3 font-bold ${color} text-right">Rp ${item.jumlah.toLocaleString()}</td>
+                        <tr class="hover:bg-blue-50 transition border-b border-gray-100">
+                            <td class="p-3 text-[10px] text-gray-400 font-mono">${item.tanggal}</td>
+                            <td class="p-3 font-extrabold text-blue-900 text-[11px]">${item.penginput}</td>
+                            <td class="p-3 text-xs text-gray-600 font-medium">${item.keterangan}</td>
+                            <td class="p-3 font-black ${color} text-right text-xs">Rp ${item.jumlah.toLocaleString()}</td>
                             <td class="p-3 text-center">
-                                <button onclick="deleteData('${item.id}')" class="text-red-500 hover:text-red-700 text-lg">✕</button>
+                                ${btnHapus}
                             </td>
                         </tr>
                     `;
