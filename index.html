@@ -76,7 +76,7 @@
             </div>
         </div>
 
-        <div class="gradient-card p-8 rounded-[2rem] shadow-xl shadow-blue-200 text-white relative overflow-hidden">
+        <div id="family-balance-card" class="hidden gradient-card p-8 rounded-[2rem] shadow-xl shadow-blue-200 text-white relative overflow-hidden">
             <div class="relative z-10">
                 <p class="text-blue-100 text-sm font-medium opacity-80">Total Kas Keluarga Bulan Ini</p>
                 <h1 class="text-4xl font-black mt-1" id="total-balance">Rp 0</h1>
@@ -129,7 +129,6 @@
     </div>
 
     <script>
-        // KONFIGURASI FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyDpkVNmfyqx76jfZV0T9N0pye4Q0p9G2lk",
             authDomain: "tabungankeluarga-a091f.firebaseapp.com",
@@ -153,7 +152,16 @@
                 document.getElementById('display-user').innerText = currentUser;
                 document.getElementById('date').valueAsDate = new Date();
                 document.getElementById('filter-month').value = String(new Date().getMonth() + 1).padStart(2, '0');
-                if(currentUser === "AYAH") document.getElementById('dashboard-ayah').classList.remove('hidden');
+                
+                // Kontrol tampilan khusus AYAH
+                if(currentUser === "AYAH") {
+                    document.getElementById('dashboard-ayah').classList.remove('hidden');
+                    document.getElementById('family-balance-card').classList.remove('hidden');
+                } else {
+                    document.getElementById('dashboard-ayah').classList.add('hidden');
+                    document.getElementById('family-balance-card').classList.add('hidden');
+                }
+
                 toggleMusic();
                 loadReport();
             } else { alert("❌ PIN Salah!"); }
@@ -176,7 +184,6 @@
                 });
                 document.getElementById('desc').value = "";
                 document.getElementById('amount').value = "";
-                alert("Berhasil dicatat!");
             } else { alert("Lengkapi data!"); }
         }
 
@@ -192,24 +199,21 @@
                 if(summaryDiv) summaryDiv.innerHTML = "";
 
                 let dataArray = [];
-                let userTotals = {}; // Untuk simpan masuk/keluar per anggota
-                let netBalance = 0;   // Saldo keluarga bulan ini
-                let myPersonalNet = 0; // Saldo spesifik user yang sedang login
+                let userTotals = {};
+                let netBalance = 0;
+                let myPersonalNet = 0;
 
                 snapshot.forEach((childSnapshot) => {
                     const item = childSnapshot.val();
                     
-                    // 1. Hitung Saldo Milik User yang Login (Total semua waktu)
                     if (item.penginput === currentUser) {
                         if (item.tipe === 'in') myPersonalNet += item.jumlah;
                         else myPersonalNet -= item.jumlah;
                     }
 
-                    // 2. Filter Laporan Berdasarkan Bulan yang Dipilih
                     if (item.tanggal.split('-')[1] === selectedMonth) {
                         dataArray.push({ id: childSnapshot.key, ...item });
                         
-                        // Hitung Rekap Per Orang untuk Dashboard Ayah
                         if (!userTotals[item.penginput]) userTotals[item.penginput] = { in: 0, out: 0 };
                         if (item.tipe === 'in') {
                             userTotals[item.penginput].in += item.jumlah;
@@ -221,11 +225,9 @@
                     }
                 });
 
-                // Tampilkan Saldo
                 balanceDisplay.innerText = `Rp ${netBalance.toLocaleString()}`;
                 myBalanceDisplay.innerText = `Rp ${myPersonalNet.toLocaleString()}`;
 
-                // Render Dashboard Ayah (Hanya muncul jika yang login adalah Ayah)
                 if(currentUser === "AYAH" && summaryDiv) {
                     for (const user in userTotals) {
                         const personNet = userTotals[user].in - userTotals[user].out;
@@ -239,12 +241,10 @@
                     }
                 }
 
-                // Render List Riwayat Transaksi
                 dataArray.sort((a, b) => b.waktu - a.waktu);
                 dataArray.forEach((item) => {
                     const isIncome = item.tipe === 'in';
                     const canDelete = (currentUser === "AYAH" || currentUser === item.penginput);
-                    
                     listDiv.innerHTML += `
                         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
                             <div class="flex items-center gap-3">
@@ -271,7 +271,6 @@
             if (confirm("Hapus data ini?")) db.ref('transaksi/' + id).remove();
         }
 
-        // LOGIKA MUSIK
         const audio = document.getElementById('bg-music');
         let isPlaying = false;
         function toggleMusic() {
