@@ -67,7 +67,7 @@
         
         <div class="flex justify-between items-center glass-effect p-4 rounded-2xl sticky top-4 z-40 shadow-sm border border-white">
             <div class="flex items-center gap-3">
-                <img id="user-avatar" src="" class="w-12 h-12 rounded-full border-2 border-blue-200 object-cover shadow-sm bg-white">
+                <img id="user-avatar" src="" class="w-14 h-14 rounded-full border-4 border-white object-cover shadow-md bg-slate-100 ring-1 ring-blue-100">
                 <div>
                     <p class="text-xs font-bold text-slate-400 uppercase">Halo,</p>
                     <h2 class="text-xl font-black text-slate-800" id="display-user"></h2>
@@ -144,28 +144,31 @@
 
         let currentUser = "";
         
-        // Data Foto Profil
+        // Data Foto Profil Real (Direct Link dari Google Drive)
         const userPhotos = { 
-            "AYAH": "https://cdn-icons-png.flaticon.com/512/3135/3135715.png", 
-            "BUNDA": "https://cdn-icons-png.flaticon.com/512/3135/3135768.png", 
-            "AA GIBRAN": "https://cdn-icons-png.flaticon.com/512/4140/4140048.png", 
-            "KAKAK FIYA": "https://cdn-icons-png.flaticon.com/512/4140/4140047.png", 
-            "ABANG RAYSHAKA": "https://cdn-icons-png.flaticon.com/512/4140/4140051.png" 
+            "AYAH": "https://lh3.googleusercontent.com/d/1nKJm--C0x-vjHRWSD62uqo90z7BmKslQ", 
+            "BUNDA": "https://lh3.googleusercontent.com/d/1fBTI_GFN8RfRh-tkW_lquFcRW6LmPJvX", 
+            "AA GIBRAN": "https://lh3.googleusercontent.com/d/1qCEjjab6-KTNXOqtFuqnlCZqIr4O67gU", 
+            "KAKAK FIYA": "https://lh3.googleusercontent.com/d/1HA9c4C74aqR9xzNWehe3QnLxfI8K6xX_", 
+            "ABANG RAYSHAKA": "https://lh3.googleusercontent.com/d/1lHhVvzppvtiAzEv4aq20t1BudqEdUl2N" 
         };
 
-        const userPasswords = { "AYAH": "ayah", "BUNDA": "bunda", "AA GIBRAN": "gibran", "KAKAK FIYA": "fiya", "ABANG RAYSHAKA": "abang" };
+        const userPasswords = { 
+            "AYAH": "ayah", 
+            "BUNDA": "bunda", 
+            "AA GIBRAN": "gibran", 
+            "KAKAK FIYA": "fiya", 
+            "ABANG RAYSHAKA": "abang" 
+        };
 
         function login() {
             const user = document.getElementById('user-login').value;
             const pass = document.getElementById('pass-login').value;
             if (userPasswords[user] === pass) {
                 currentUser = user;
-                
-                // Menghilangkan login, menampilkan halaman utama
                 document.getElementById('login-page').classList.add('hidden');
                 document.getElementById('main-page').classList.remove('hidden');
                 
-                // Set Nama dan Foto Profil
                 document.getElementById('display-user').innerText = currentUser;
                 document.getElementById('user-avatar').src = userPhotos[currentUser];
 
