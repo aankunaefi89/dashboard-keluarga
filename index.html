@@ -21,6 +21,9 @@
         .gradient-card {
             background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
         }
+        /* Custom scrollbar untuk tampilan lebih bersih */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen font-sans text-slate-900">
@@ -105,7 +108,7 @@
             </div>
         </div>
 
-        <div id="dashboard-ayah" class="hidden animate-fade-in">
+        <div id="dashboard-ayah" class="hidden">
             <div class="bg-slate-900 rounded-3xl p-6 text-white">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="font-black text-yellow-400 uppercase text-xs tracking-widest">Kontrol Manajer Ayah</h3>
@@ -157,7 +160,7 @@
                     <span class="text-4xl block mb-2 group-hover:scale-110 transition-transform">🕌</span>
                     <p class="font-black text-purple-700 text-sm">AGAMA</p>
                 </div>
-                <div onclick="alert('Game Matematika segera hadir!')" class="bg-blue-50 p-6 rounded-3xl border-2 border-blue-100 hover:border-blue-500 cursor-pointer transition-all text-center group">
+                <div onclick="openMathGame()" class="bg-blue-50 p-6 rounded-3xl border-2 border-blue-100 hover:border-blue-500 cursor-pointer transition-all text-center group">
                     <span class="text-4xl block mb-2 group-hover:scale-110 transition-transform">🔢</span>
                     <p class="font-black text-blue-700 text-sm">MTK</p>
                 </div>
@@ -166,19 +169,35 @@
         </div>
     </div>
 
+    <div id="math-game-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm"></div>
+        <div class="bg-white w-full max-w-sm rounded-[2rem] p-6 relative z-10 shadow-2xl text-center">
+            <button onclick="closeMathGame()" class="absolute top-4 right-4 text-slate-400 hover:text-red-500 font-bold text-xl">✕</button>
+            <h3 class="text-xl font-bold text-slate-800 mb-4">Kuis Matematika 🔢</h3>
+            <div class="bg-blue-50 rounded-2xl p-6 mb-4">
+                <div id="question" class="text-4xl font-black text-blue-600 mb-2">0 + 0</div>
+                <input type="number" id="answer-input" class="w-full bg-white border-2 border-blue-200 p-3 rounded-xl text-center text-xl font-bold focus:border-blue-500 outline-none" placeholder="Jawaban?">
+            </div>
+            <button onclick="checkAnswer()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-all">CEK JAWABAN</button>
+            <div class="mt-4 flex justify-between px-2">
+                <span class="text-sm font-bold text-slate-400">Skor: <span id="game-score" class="text-blue-600">0</span></span>
+                <span id="feedback" class="text-sm font-bold"></span>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // --- KONFIGURASI FIREBASE ---
         const firebaseConfig = {
             apiKey: "AIzaSyDpkVNmfyqx76jfZV0T9N0pye4Q0p9G2lk",
             authDomain: "tabungankeluarga-a091f.firebaseapp.com",
             projectId: "tabungankeluarga-a091f",
             databaseURL: "https://tabungankeluarga-a091f-default-rtdb.firebaseio.com"
         };
-
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
         let currentUser = "";
-        
         const userPhotos = { 
             "AYAH": "https://lh3.googleusercontent.com/d/1nKJm--C0x-vjHRWSD62uqo90z7BmKslQ", 
             "BUNDA": "https://lh3.googleusercontent.com/d/1fBTI_GFN8RfRh-tkW_lquFcRW6LmPJvX", 
@@ -186,15 +205,11 @@
             "KAKAK FIYA": "https://lh3.googleusercontent.com/d/1HA9c4C74aqR9xzNWehe3QnLxfI8K6xX_", 
             "ABANG RAYSHAKA": "https://lh3.googleusercontent.com/d/1lHhVvzppvtiAzEv4aq20t1BudqEdUl2N" 
         };
-
         const userPasswords = { 
-            "AYAH": "ayah", 
-            "BUNDA": "bunda", 
-            "AA GIBRAN": "gibran", 
-            "KAKAK FIYA": "fiya", 
-            "ABANG RAYSHAKA": "abang" 
+            "AYAH": "ayah", "BUNDA": "bunda", "AA GIBRAN": "gibran", "KAKAK FIYA": "fiya", "ABANG RAYSHAKA": "abang" 
         };
 
+        // --- LOGIKA LOGIN ---
         function login() {
             const user = document.getElementById('user-login').value;
             const pass = document.getElementById('pass-login').value;
@@ -202,43 +217,78 @@
                 currentUser = user;
                 document.getElementById('login-page').classList.add('hidden');
                 document.getElementById('main-page').classList.remove('hidden');
-                
                 document.getElementById('display-user').innerText = currentUser;
                 document.getElementById('user-avatar').src = userPhotos[currentUser];
-
                 document.getElementById('date').valueAsDate = new Date();
                 document.getElementById('filter-month').value = String(new Date().getMonth() + 1).padStart(2, '0');
                 
                 if(currentUser === "AYAH") {
                     document.getElementById('dashboard-ayah').classList.remove('hidden');
                     document.getElementById('family-balance-card').classList.remove('hidden');
-                } else {
-                    document.getElementById('dashboard-ayah').classList.add('hidden');
-                    document.getElementById('family-balance-card').classList.add('hidden');
                 }
-
                 toggleMusic();
                 loadReport();
             } else { alert("❌ PIN Salah!"); }
         }
 
-        // FUNGSI UNTUK MENU GAME
+        // --- LOGIKA MENU GAME ---
         function openGameMenu() {
             document.getElementById('game-dashboard').classList.remove('hidden');
             document.body.style.overflow = 'hidden';
         }
-
         function closeGameMenu() {
             document.getElementById('game-dashboard').classList.add('hidden');
             document.body.style.overflow = 'auto';
         }
 
+        // --- LOGIKA GAME MATEMATIKA ---
+        let currentAnswer = 0;
+        let score = 0;
+
+        function openMathGame() {
+            closeGameMenu(); // Tutup menu utama game
+            document.getElementById('math-game-modal').classList.remove('hidden');
+            generateQuestion();
+        }
+        function closeMathGame() {
+            document.getElementById('math-game-modal').classList.add('hidden');
+            score = 0;
+            document.getElementById('game-score').innerText = score;
+            document.getElementById('feedback').innerText = "";
+        }
+        function generateQuestion() {
+            const n1 = Math.floor(Math.random() * 10) + 1;
+            const n2 = Math.floor(Math.random() * 10) + 1;
+            currentAnswer = n1 + n2;
+            document.getElementById('question').innerText = `${n1} + ${n2}`;
+            document.getElementById('answer-input').value = "";
+            document.getElementById('answer-input').focus();
+        }
+        function checkAnswer() {
+            const userAns = parseInt(document.getElementById('answer-input').value);
+            const fb = document.getElementById('feedback');
+            if (userAns === currentAnswer) {
+                score += 10;
+                fb.innerText = "✅ Pintar!";
+                fb.className = "text-sm font-bold text-green-500";
+                document.getElementById('game-score').innerText = score;
+                setTimeout(generateQuestion, 800);
+            } else {
+                fb.innerText = "❌ Coba lagi!";
+                fb.className = "text-sm font-bold text-red-500";
+            }
+        }
+        // Listener tombol Enter untuk menjawab
+        document.getElementById('answer-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') checkAnswer();
+        });
+
+        // --- LOGIKA DATA (FIREBASE) ---
         function saveData() {
             const desc = document.getElementById('desc').value;
             const amount = document.getElementById('amount').value;
             const type = document.getElementById('type').value;
             const date = document.getElementById('date').value;
-
             if (desc && amount && date) {
                 db.ref('transaksi').push({
                     penginput: currentUser,
@@ -263,7 +313,6 @@
                 
                 listDiv.innerHTML = "";
                 if(summaryDiv) summaryDiv.innerHTML = "";
-
                 let dataArray = [];
                 let userTotals = {};
                 let netBalance = 0;
@@ -271,15 +320,11 @@
 
                 snapshot.forEach((childSnapshot) => {
                     const item = childSnapshot.val();
-                    
                     if (item.penginput === currentUser) {
-                        if (item.tipe === 'in') myPersonalNet += item.jumlah;
-                        else myPersonalNet -= item.jumlah;
+                        myPersonalNet += (item.tipe === 'in' ? item.jumlah : -item.jumlah);
                     }
-
                     if (item.tanggal.split('-')[1] === selectedMonth) {
                         dataArray.push({ id: childSnapshot.key, ...item });
-                        
                         if (!userTotals[item.penginput]) userTotals[item.penginput] = { in: 0, out: 0 };
                         if (item.tipe === 'in') {
                             userTotals[item.penginput].in += item.jumlah;
@@ -291,7 +336,7 @@
                     }
                 });
 
-                balanceDisplay.innerText = `Rp ${netBalance.toLocaleString()}`;
+                if(balanceDisplay) balanceDisplay.innerText = `Rp ${netBalance.toLocaleString()}`;
                 myBalanceDisplay.innerText = `Rp ${myPersonalNet.toLocaleString()}`;
 
                 if(currentUser === "AYAH" && summaryDiv) {
@@ -337,6 +382,7 @@
             if (confirm("Hapus data ini?")) db.ref('transaksi/' + id).remove();
         }
 
+        // --- LOGIKA MUSIK ---
         const audio = document.getElementById('bg-music');
         let isPlaying = false;
         function toggleMusic() {
@@ -344,74 +390,12 @@
                 audio.pause(); 
                 document.getElementById('music-icon').innerText = "🎵"; 
             } else { 
-                audio.play().catch(e => console.log("Musik butuh klik pertama")); 
+                audio.play().catch(e => console.log("Musik butuh interaksi user")); 
                 document.getElementById('music-icon').innerText = "⏸️"; 
             }
             isPlaying = !isPlaying;
             document.getElementById('music-btn').classList.toggle('music-active');
         }
     </script>
-    <div id="math-game-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
-    <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm"></div>
-    <div class="bg-white w-full max-w-sm rounded-[2rem] p-6 relative z-10 shadow-2xl text-center">
-        <button onclick="closeMathGame()" class="absolute top-4 right-4 text-slate-400 hover:text-red-500 font-bold text-xl">✕</button>
-        
-        <h3 class="text-xl font-bold text-slate-800 mb-4">Kuis Matematika 🔢</h3>
-        
-        <div class="bg-blue-50 rounded-2xl p-6 mb-4">
-            <div id="question" class="text-4xl font-black text-blue-600 mb-2">0 + 0</div>
-            <input type="number" id="answer-input" class="w-full bg-white border-2 border-blue-200 p-3 rounded-xl text-center text-xl font-bold focus:border-blue-500 outline-none" placeholder="Jawaban?">
-        </div>
-
-        <button onclick="checkAnswer()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-all">CEK JAWABAN</button>
-        
-        <div class="mt-4 flex justify-between px-2">
-            <span class="text-sm font-bold text-slate-400">Skor: <span id="game-score" class="text-blue-600">0</span></span>
-            <span id="feedback" class="text-sm font-bold"></span>
-        </div>
-    </div>
-</div>
-
-<script>
-    let currentAnswer = 0;
-    let score = 0;
-
-    // Fungsi untuk membuka game (panggil ini saat klik tombol MTK)
-    function openMathGame() {
-        document.getElementById('math-game-modal').classList.remove('hidden');
-        generateQuestion();
-    }
-
-    function closeMathGame() {
-        document.getElementById('math-game-modal').classList.add('hidden');
-        score = 0;
-        document.getElementById('game-score').innerText = score;
-    }
-
-    function generateQuestion() {
-        const n1 = Math.floor(Math.random() * 10) + 1;
-        const n2 = Math.floor(Math.random() * 10) + 1;
-        currentAnswer = n1 + n2;
-        document.getElementById('question').innerText = `${n1} + ${n2}`;
-        document.getElementById('answer-input').value = "";
-        document.getElementById('answer-input').focus();
-    }
-
-    function checkAnswer() {
-        const userAns = parseInt(document.getElementById('answer-input').value);
-        const fb = document.getElementById('feedback');
-        
-        if (userAns === currentAnswer) {
-            score += 10;
-            fb.innerText = "✅ Pintar!";
-            fb.className = "text-sm font-bold text-green-500";
-            document.getElementById('game-score').innerText = score;
-            setTimeout(generateQuestion, 800);
-        } else {
-            fb.innerText = "❌ Coba lagi!";
-            fb.className = "text-sm font-bold text-red-500";
-        }
-    }
-</script>
 </body>
 </html>
