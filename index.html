@@ -140,6 +140,16 @@
         const db = firebase.database();
 
         let currentUser = "";
+        
+        // --- DATA FOTO (LANGKAH 1) ---
+        const userPhotos = { 
+            "AYAH": "https://cdn-icons-png.flaticon.com/512/3135/3135715.png", 
+            "BUNDA": "https://cdn-icons-png.flaticon.com/512/3135/3135768.png", 
+            "AA GIBRAN": "https://cdn-icons-png.flaticon.com/512/4140/4140048.png", 
+            "KAKAK FIYA": "https://cdn-icons-png.flaticon.com/512/4140/4140047.png", 
+            "ABANG RAYSHAKA": "https://cdn-icons-png.flaticon.com/512/4140/4140051.png" 
+        };
+
         const userPasswords = { "AYAH": "ayah", "BUNDA": "bunda", "AA GIBRAN": "gibran", "KAKAK FIYA": "fiya", "ABANG RAYSHAKA": "abang" };
 
         function login() {
@@ -153,7 +163,6 @@
                 document.getElementById('date').valueAsDate = new Date();
                 document.getElementById('filter-month').value = String(new Date().getMonth() + 1).padStart(2, '0');
                 
-                // Kontrol tampilan khusus AYAH
                 if(currentUser === "AYAH") {
                     document.getElementById('dashboard-ayah').classList.remove('hidden');
                     document.getElementById('family-balance-card').classList.remove('hidden');
