@@ -66,7 +66,6 @@
     </div>
 
     <div id="main-page" class="max-w-2xl mx-auto p-4 hidden space-y-6 pb-24">
-        
         <div class="flex justify-between items-center glass-effect p-4 rounded-2xl sticky top-4 z-40 shadow-sm border border-white">
             <div class="flex items-center gap-3">
                 <img id="user-avatar" src="" class="w-14 h-14 rounded-full border-4 border-white object-cover shadow-md bg-slate-100 ring-1 ring-blue-100">
@@ -145,12 +144,18 @@
                 <button onclick="closeGameMenu()" class="bg-slate-100 text-slate-400 hover:text-red-500 p-2 rounded-full font-bold text-sm">✕</button>
             </div>
             <div class="grid grid-cols-2 gap-4">
-                <div onclick="alert('Segera Hadir!')" class="bg-green-50 p-6 rounded-3xl border-2 border-green-100 text-center">
+                <div onclick="alert('Segera Hadir!')" class="bg-green-50 p-6 rounded-3xl border-2 border-green-100 text-center cursor-pointer hover:scale-105 transition-all">
                     <span class="text-4xl block mb-2">🧬</span><p class="font-black text-green-700 text-sm">IPA</p>
                 </div>
                 <div onclick="openMathGame()" class="bg-blue-50 p-6 rounded-3xl border-2 border-blue-100 hover:border-blue-500 cursor-pointer text-center group transition-all">
                     <span class="text-4xl block mb-2 group-hover:scale-110 transition-transform">🔢</span>
                     <p class="font-black text-blue-700 text-sm">MTK (Level)</p>
+                </div>
+                <div onclick="alert('Segera Hadir!')" class="bg-orange-50 p-6 rounded-3xl border-2 border-orange-100 text-center cursor-pointer hover:scale-105 transition-all">
+                    <span class="text-4xl block mb-2">🌍</span><p class="font-black text-orange-700 text-sm">IPS</p>
+                </div>
+                <div onclick="alert('Segera Hadir!')" class="bg-red-50 p-6 rounded-3xl border-2 border-red-100 text-center cursor-pointer hover:scale-105 transition-all">
+                    <span class="text-4xl block mb-2">📜</span><p class="font-black text-red-700 text-sm">SEJARAH</p>
                 </div>
             </div>
         </div>
@@ -185,7 +190,7 @@
         const db = firebase.database();
 
         let currentUser = "";
-        const userPhotos = { "AYAH": "https://lh3.googleusercontent.com/d/1nKJm--C0x-vjHRWSD62uqo90z7BmKslQ", "BUNDA": "https://lh3.googleusercontent.com/d/1fBTI_GFN8RfRh-tkW_lquFcRW6LmPJvX", "AA GIBRAN": "https://lh3.googleusercontent.com/d/1qCEjjab6-KTNXOqtFuqnlCZqIr4O67gU", "KAKAK FIYA": "https://lh3.googleusercontent.com/d/1HA9c4C74aqR9xzNWehe3QnLxfI8K6xX_", "ABANG RAYSHAKA": "https://lh3.googleusercontent.com/d/1lHhVvzppvtiAzEv4aq20t1BudqEdUl2N" };
+        const userPhotos = { "AYAH": "https://via.placeholder.com/150", "BUNDA": "https://via.placeholder.com/150", "AA GIBRAN": "https://via.placeholder.com/150", "KAKAK FIYA": "https://via.placeholder.com/150", "ABANG RAYSHAKA": "https://via.placeholder.com/150" };
         const userPasswords = { "AYAH": "ayah", "BUNDA": "bunda", "AA GIBRAN": "gibran", "KAKAK FIYA": "fiya", "ABANG RAYSHAKA": "abang" };
 
         function login() {
@@ -198,52 +203,28 @@
                 document.getElementById('display-user').innerText = currentUser;
                 document.getElementById('user-avatar').src = userPhotos[currentUser];
                 document.getElementById('date').valueAsDate = new Date();
+                
                 if(currentUser === "AYAH") {
                     document.getElementById('dashboard-ayah').classList.remove('hidden');
                     document.getElementById('family-balance-card').classList.remove('hidden');
+                    // Set filter bulan otomatis ke bulan sekarang
+                    document.getElementById('filter-month').value = String(new Date().getMonth() + 1).padStart(2, '0');
                 }
                 loadReport();
             } else { alert("PIN Salah!"); }
         }
 
-        // --- GAME LOGIC (WITH LEVELS) ---
-        let currentAnswer = 0;
-        let score = 0;
-
+        // --- GAME LOGIC ---
+        let currentAnswer = 0; let score = 0;
         function openGameMenu() { document.getElementById('game-dashboard').classList.remove('hidden'); }
         function closeGameMenu() { document.getElementById('game-dashboard').classList.add('hidden'); }
-
-        function openMathGame() {
-            closeGameMenu();
-            document.getElementById('math-game-modal').classList.remove('hidden');
-            generateQuestion();
-        }
-
-        function closeMathGame() {
-            document.getElementById('math-game-modal').classList.add('hidden');
-            document.getElementById('game-score').innerText = score;
-            document.getElementById('feedback').innerText = "";
-        }
+        function openMathGame() { closeGameMenu(); document.getElementById('math-game-modal').classList.remove('hidden'); generateQuestion(); }
+        function closeMathGame() { document.getElementById('math-game-modal').classList.add('hidden'); }
 
         function generateQuestion() {
             let n1, n2, operator;
-            if (score <= 50) {
-                n1 = Math.floor(Math.random() * 10) + 1;
-                n2 = Math.floor(Math.random() * 10) + 1;
-                operator = "+";
-                currentAnswer = n1 + n2;
-            } else if (score <= 100) {
-                n1 = Math.floor(Math.random() * 40) + 10;
-                n2 = Math.floor(Math.random() * 40) + 10;
-                operator = "+";
-                currentAnswer = n1 + n2;
-            } else {
-                n1 = Math.floor(Math.random() * 50) + 20;
-                n2 = Math.floor(Math.random() * 20) + 1;
-                const isMinus = Math.random() > 0.5;
-                if (isMinus) { operator = "-"; currentAnswer = n1 - n2; }
-                else { operator = "+"; currentAnswer = n1 + n2; }
-            }
+            if (score <= 50) { n1 = Math.floor(Math.random() * 10) + 1; n2 = Math.floor(Math.random() * 10) + 1; operator = "+"; currentAnswer = n1 + n2; }
+            else { n1 = Math.floor(Math.random() * 20) + 10; n2 = Math.floor(Math.random() * 10) + 1; operator = "-"; currentAnswer = n1 - n2; }
             document.getElementById('question').innerText = `${n1} ${operator} ${n2}`;
             document.getElementById('answer-input').value = "";
             document.getElementById('answer-input').focus();
@@ -253,20 +234,13 @@
             const userAns = parseInt(document.getElementById('answer-input').value);
             const fb = document.getElementById('feedback');
             if (userAns === currentAnswer) {
-                score += 10;
-                fb.innerText = "✅ Hebat! +10";
-                fb.className = "text-sm font-bold text-green-500";
+                score += 10; fb.innerText = "✅ Betul!"; fb.className = "text-green-500 font-bold";
                 document.getElementById('game-score').innerText = score;
                 setTimeout(generateQuestion, 800);
-            } else {
-                fb.innerText = "❌ Coba lagi!";
-                fb.className = "text-sm font-bold text-red-500";
-            }
+            } else { fb.innerText = "❌ Salah!"; fb.className = "text-red-500 font-bold"; }
         }
 
-        document.getElementById('answer-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') checkAnswer(); });
-
-        // --- DATA LOGIC ---
+        // --- DATA LOGIC (FIXED HISTORY) ---
         function saveData() {
             const desc = document.getElementById('desc').value;
             const amount = document.getElementById('amount').value;
@@ -274,13 +248,14 @@
             const date = document.getElementById('date').value;
             if (desc && amount && date) {
                 db.ref('transaksi').push({ penginput: currentUser, keterangan: desc, jumlah: parseInt(amount), tipe: type, tanggal: date, waktu: Date.now() });
-                document.getElementById('desc').value = "";
-                document.getElementById('amount').value = "";
+                document.getElementById('desc').value = ""; document.getElementById('amount').value = "";
             }
         }
 
         function loadReport() {
-            const selectedMonth = document.getElementById('filter-month').value || String(new Date().getMonth() + 1).padStart(2, '0');
+            const filterMonthEl = document.getElementById('filter-month');
+            const selectedMonth = filterMonthEl ? filterMonthEl.value : String(new Date().getMonth() + 1).padStart(2, '0');
+            
             db.ref('transaksi').on('value', (snapshot) => {
                 const listDiv = document.getElementById('transaction-list');
                 const summaryDiv = document.getElementById('user-summaries');
@@ -290,8 +265,14 @@
 
                 snapshot.forEach((child) => {
                     const item = child.val();
-                    if (item.penginput === currentUser) myPersonalNet += (item.tipe === 'in' ? item.jumlah : -item.jumlah);
-                    if (item.tanggal.split('-')[1] === selectedMonth) {
+                    // Hitung Saldo Pribadi (Semua Waktu)
+                    if (item.penginput === currentUser) {
+                        myPersonalNet += (item.tipe === 'in' ? item.jumlah : -item.jumlah);
+                    }
+                    
+                    // Filter Data berdasarkan Bulan terpilih
+                    const itemMonth = item.tanggal.split('-')[1];
+                    if (itemMonth === selectedMonth) {
                         dataArray.push({ id: child.key, ...item });
                         if (!userTotals[item.penginput]) userTotals[item.penginput] = { in: 0, out: 0 };
                         if (item.tipe === 'in') { userTotals[item.penginput].in += item.jumlah; netBalance += item.jumlah; }
@@ -311,19 +292,22 @@
                     }
                 }
 
-                dataArray.sort((a,b) => b.waktu - a.waktu).forEach(item => {
-                    const isIncome = item.tipe === 'in';
-                    listDiv.innerHTML += `<div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-center">
-                        <div><p class="text-sm font-bold">${item.keterangan}</p><p class="text-[10px] text-slate-400">${item.penginput} • ${item.tanggal}</p></div>
-                        <p class="font-black ${isIncome ? 'text-green-600' : 'text-red-600'}">${isIncome ? '+' : '-'} Rp ${item.jumlah.toLocaleString()}</p>
-                    </div>`;
-                });
+                if (dataArray.length === 0) {
+                    listDiv.innerHTML = `<p class="text-center text-slate-400 py-10 text-xs">Belum ada riwayat di bulan ini.</p>`;
+                } else {
+                    dataArray.sort((a,b) => b.waktu - a.waktu).forEach(item => {
+                        const isInc = item.tipe === 'in';
+                        listDiv.innerHTML += `<div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-center">
+                            <div><p class="text-sm font-bold">${item.keterangan}</p><p class="text-[10px] text-slate-400">${item.penginput} • ${item.tanggal}</p></div>
+                            <p class="font-black ${isInc ? 'text-green-600' : 'text-red-600'}">${isInc ? '+' : '-'} Rp ${item.jumlah.toLocaleString()}</p>
+                        </div>`;
+                    });
+                }
             });
         }
 
         // --- MUSIC ---
-        const audio = document.getElementById('bg-music');
-        let isPlaying = false;
+        const audio = document.getElementById('bg-music'); let isPlaying = false;
         function toggleMusic() {
             isPlaying ? audio.pause() : audio.play().catch(e => {});
             isPlaying = !isPlaying;
