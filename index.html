@@ -8,200 +8,139 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @keyframes pulse-soft {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
+        @keyframes pulse-soft { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
         .music-active { animation: pulse-soft 2s infinite; }
-        .glass-effect {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-        }
-        .gradient-card {
-            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
-        }
-        .game-card:active { transform: scale(0.95); }
+        .glass-effect { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); }
+        .gradient-card { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen font-sans text-slate-900">
 
-    <!-- Musik Latar -->
-    <div class="fixed bottom-6 right-6 z-50">
+    <!-- Musik Latar & Pemilih Lagu -->
+    <div class="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">
+        <select id="song-selector" onchange="changeSong()" class="text-[10px] bg-white/80 backdrop-blur border border-slate-200 rounded-lg p-1 shadow-sm outline-none">
+            <option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3">🎵 Musik Ceria (Game)</option>
+            <option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3">☕ Musik Santai (Lofi)</option>
+            <option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3">⚡ Musik Semangat</option>
+        </select>
         <button onclick="toggleMusic()" id="music-btn" class="bg-white p-4 rounded-full shadow-2xl border border-slate-200 hover:shadow-blue-200 transition-all">
             <span id="music-icon" class="text-2xl">🎵</span>
         </button>
-        <audio id="bg-music" loop>
-            <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
-        </audio>
+        <audio id="bg-music" loop><source id="music-source" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" type="audio/mpeg"></audio>
     </div>
 
     <!-- Halaman Login -->
     <div id="login-page" class="max-w-md mx-auto p-6 pt-20">
-        <div class="bg-white rounded-3xl shadow-xl p-8 border border-slate-100">
-            <div class="text-center mb-8">
-                <div class="bg-blue-100 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <span class="text-3xl">💰</span>
-                </div>
-                <h1 class="text-2xl font-black text-slate-800">Keluarga Aan</h1>
-                <p class="text-slate-500 text-sm">Kelola masa depan dengan ceria</p>
-            </div>
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 px-1">Siapa ini?</label>
-                    <select id="user-login" class="w-full bg-slate-50 border-0 p-4 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none font-bold text-slate-700">
-                        <option value="AYAH">AYAH</option>
-                        <option value="BUNDA">BUNDA</option>
-                        <option value="AA GIBRAN">AA GIBRAN</option>
-                        <option value="KAKAK FIYA">KAKAK FIYA</option>
-                        <option value="ABANG RAYSHAKA">ABANG RAYSHAKA</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 px-1">PIN Rahasia</label>
-                    <input type="password" id="pass-login" class="w-full bg-slate-50 border-0 p-4 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none" placeholder="••••">
-                </div>
-                <button onclick="login()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold text-lg hover:bg-blue-700 shadow-lg transition-all active:scale-95">MASUK SEKARANG</button>
+        <div class="bg-white rounded-3xl shadow-xl p-8 border border-slate-100 text-center">
+            <div class="bg-blue-100 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"><span class="text-3xl">💰</span></div>
+            <h1 class="text-2xl font-black text-slate-800">Keluarga Aan</h1>
+            <div class="space-y-4 mt-8">
+                <select id="user-login" class="w-full bg-slate-50 border-0 p-4 rounded-2xl font-bold text-slate-700">
+                    <option value="AYAH">AYAH</option>
+                    <option value="BUNDA">BUNDA</option>
+                    <option value="AA GIBRAN">AA GIBRAN</option>
+                    <option value="KAKAK FIYA">KAKAK FIYA</option>
+                    <option value="ABANG RAYSHAKA">ABANG RAYSHAKA</option>
+                </select>
+                <input type="password" id="pass-login" class="w-full bg-slate-50 border-0 p-4 rounded-2xl outline-none" placeholder="PIN Rahasia">
+                <button onclick="login()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold text-lg hover:bg-blue-700 shadow-lg transition-all active:scale-95">MASUK</button>
             </div>
         </div>
     </div>
 
-    <!-- Halaman Utama (Main Page) -->
+    <!-- Halaman Utama -->
     <div id="main-page" class="max-w-2xl mx-auto p-4 hidden space-y-6 pb-24">
-        <!-- Header Profil -->
+        <!-- Header -->
         <div class="flex justify-between items-center glass-effect p-4 rounded-2xl sticky top-4 z-40 shadow-sm border border-white">
             <div class="flex items-center gap-3">
-                <img id="user-avatar" src="" class="w-14 h-14 rounded-full border-4 border-white object-cover shadow-md bg-slate-100 ring-1 ring-blue-100">
-                <div>
-                    <p class="text-xs font-bold text-slate-400 uppercase">Halo,</p>
-                    <h2 class="text-xl font-black text-slate-800" id="display-user"></h2>
-                </div>
+                <img id="user-avatar" src="" class="w-14 h-14 rounded-full border-4 border-white object-cover shadow-md bg-slate-100">
+                <div><p class="text-xs font-bold text-slate-400 uppercase">Halo,</p><h2 class="text-xl font-black text-slate-800" id="display-user"></h2></div>
             </div>
             <div class="text-right bg-blue-50 px-4 py-2 rounded-2xl border border-blue-100">
-                <p class="text-[10px] font-black text-blue-400 uppercase tracking-tighter">Saldo Saya</p>
+                <p class="text-[10px] font-black text-blue-400 uppercase">Saldo Saya</p>
                 <p class="text-base font-black text-blue-700" id="my-personal-balance">Rp 0</p>
             </div>
         </div>
 
-        <!-- Dashboard Khusus Ayah -->
-        <div id="family-balance-card" class="hidden gradient-card p-8 rounded-[2rem] shadow-xl shadow-blue-200 text-white relative overflow-hidden">
-            <div class="relative z-10">
-                <p class="text-blue-100 text-sm font-medium opacity-80">Total Kas Keluarga Bulan Ini</p>
-                <h1 class="text-4xl font-black mt-1" id="total-balance">Rp 0</h1>
-            </div>
-            <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-white opacity-10 rounded-full"></div>
+        <!-- Dashboard Ayah -->
+        <div id="family-balance-card" class="hidden gradient-card p-8 rounded-[2rem] shadow-xl text-white">
+            <p class="text-blue-100 text-sm opacity-80">Total Kas Keluarga</p>
+            <h1 class="text-4xl font-black mt-1" id="total-balance">Rp 0</h1>
         </div>
 
+        <!-- Form Transaksi -->
         <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6">
-            <h3 class="text-sm font-black text-slate-800 mb-4 flex items-center gap-2">
-                <span class="bg-blue-100 p-1.5 rounded-lg">➕</span> Catat Transaksi
-            </h3>
+            <h3 class="text-sm font-black text-slate-800 mb-4 flex items-center gap-2"><span>➕</span> Transaksi Baru</h3>
             <div class="space-y-4">
-                <input type="text" id="desc" class="w-full bg-slate-50 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all" placeholder="Keterangan">
+                <input type="text" id="desc" class="w-full bg-slate-50 p-4 rounded-2xl outline-none" placeholder="Keterangan">
                 <div class="grid grid-cols-2 gap-3">
-                    <input type="number" id="amount" class="bg-slate-50 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 font-bold" placeholder="Jumlah (Rp)">
-                    <select id="type" class="bg-slate-50 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 font-bold text-blue-600">
+                    <input type="number" id="amount" class="bg-slate-50 p-4 rounded-2xl outline-none font-bold" placeholder="Jumlah (Rp)">
+                    <select id="type" class="bg-slate-50 p-4 rounded-2xl font-bold text-blue-600">
                         <option value="in">MASUK (+)</option>
                         <option value="out">KELUAR (-)</option>
                     </select>
                 </div>
-                <input type="date" id="date" class="w-full bg-slate-50 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500">
-                <button onclick="saveData()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold hover:bg-black transition-all active:scale-95 shadow-lg">SIMPAN</button>
+                <input type="date" id="date" class="w-full bg-slate-50 p-4 rounded-2xl outline-none">
+                <button onclick="saveData()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold shadow-lg">SIMPAN DATA</button>
             </div>
         </div>
 
-        <div id="dashboard-ayah" class="hidden">
-            <div class="bg-slate-900 rounded-3xl p-6 text-white">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="font-black text-yellow-400 uppercase text-xs tracking-widest">Kontrol Manajer Ayah</h3>
-                    <select id="filter-month" onchange="loadReport()" class="bg-slate-800 text-xs p-2 rounded-lg border-0 outline-none">
-                        <option value="01">Jan</option><option value="02">Feb</option><option value="03">Mar</option>
-                        <option value="04">Apr</option><option value="05">Mei</option><option value="06">Jun</option>
-                        <option value="07">Jul</option><option value="08">Agu</option><option value="09">Sep</option>
-                        <option value="10">Okt</option><option value="11">Nov</option><option value="12">Des</option>
-                    </select>
-                </div>
-                <div id="user-summaries" class="grid grid-cols-2 gap-3"></div>
-            </div>
+        <!-- Tombol Game -->
+        <div class="flex justify-between items-center px-2">
+            <h3 class="text-sm font-black text-slate-800">Riwayat & Aktivitas</h3>
+            <button onclick="openGameMenu()" class="bg-indigo-600 text-white px-4 py-2 rounded-xl font-black text-xs flex items-center gap-2 animate-bounce">
+                🎮 MAIN GAME SERU
+            </button>
         </div>
 
-        <div class="space-y-4">
-            <div class="flex justify-between items-center">
-                <div class="flex items-center gap-2">
-                    <h3 class="text-sm font-black text-slate-800 flex items-center gap-2">
-                        <span class="bg-yellow-100 p-1.5 rounded-lg">🕒</span> Riwayat
-                    </h3>
-                    <button onclick="openGameMenu()" class="text-[10px] font-black text-white bg-indigo-500 px-3 py-1.5 rounded-xl hover:bg-indigo-600 transition-all flex items-center gap-1.5 shadow-sm active:scale-95">
-                        <span>🎮</span> MAIN GAME
-                    </button>
-                </div>
-                <button onclick="location.reload()" class="text-[10px] font-bold text-red-400 uppercase">Logout</button>
-            </div>
-            <div id="transaction-list" class="space-y-3"></div>
-        </div>
+        <div id="transaction-list" class="space-y-3"></div>
     </div>
 
-    <!-- MODAL DASHBOARD GAME -->
+    <!-- MODAL GAME -->
     <div id="game-dashboard" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onclick="closeGameMenu()"></div>
-        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 relative z-10 shadow-2xl">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-black text-slate-800 tracking-tight">Game Edukasi 🚀</h2>
-                <button onclick="closeGameMenu()" class="bg-slate-100 text-slate-400 hover:text-red-500 p-2 rounded-full font-bold text-sm">✕</button>
-            </div>
+        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 relative z-10">
+            <h2 class="text-2xl font-black mb-6">Pilih Tantangan 🚀</h2>
             <div class="grid grid-cols-2 gap-4">
-                <div onclick="startGame('IPA')" class="bg-green-50 p-6 rounded-3xl border-2 border-green-100 hover:border-green-500 cursor-pointer text-center group transition-all">
-                    <span class="text-4xl block mb-2 group-hover:scale-110 transition-transform">🧬</span>
-                    <p class="font-black text-green-700 text-sm">IPA</p>
+                <div onclick="startGame('IPA')" class="bg-green-50 p-6 rounded-3xl text-center cursor-pointer border-2 border-transparent hover:border-green-500">
+                    <span class="text-4xl block mb-2">🧬</span><p class="font-black text-green-700">IPA</p>
                 </div>
-                <div onclick="startGame('IPS')" class="bg-orange-50 p-6 rounded-3xl border-2 border-orange-100 hover:border-orange-500 cursor-pointer text-center group transition-all">
-                    <span class="text-4xl block mb-2 group-hover:scale-110 transition-transform">🌍</span>
-                    <p class="font-black text-orange-700 text-sm">IPS</p>
+                <div onclick="startGame('IPS')" class="bg-orange-50 p-6 rounded-3xl text-center cursor-pointer border-2 border-transparent hover:border-orange-500">
+                    <span class="text-4xl block mb-2">🌍</span><p class="font-black text-orange-700">IPS</p>
                 </div>
-                <div onclick="startGame('SEJARAH')" class="bg-red-50 p-6 rounded-3xl border-2 border-red-100 hover:border-red-500 cursor-pointer text-center group transition-all">
-                    <span class="text-4xl block mb-2 group-hover:scale-110 transition-transform">📜</span>
-                    <p class="font-black text-red-700 text-sm">SEJARAH</p>
+                <div onclick="startGame('SEJARAH')" class="bg-red-50 p-6 rounded-3xl text-center cursor-pointer border-2 border-transparent hover:border-red-500">
+                    <span class="text-4xl block mb-2">📜</span><p class="font-black text-red-700">SEJARAH</p>
                 </div>
-                <div onclick="startGame('MTK')" class="bg-blue-50 p-6 rounded-3xl border-2 border-blue-100 hover:border-blue-500 cursor-pointer text-center group transition-all">
-                    <span class="text-4xl block mb-2 group-hover:scale-110 transition-transform">🔢</span>
-                    <p class="font-black text-blue-700 text-sm">MTK</p>
+                <div onclick="startGame('MTK')" class="bg-blue-50 p-6 rounded-3xl text-center cursor-pointer border-2 border-transparent hover:border-blue-500">
+                    <span class="text-4xl block mb-2">🔢</span><p class="font-black text-blue-700">MTK</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- MODAL PLAYING GAME -->
+    <!-- MODAL PLAYING -->
     <div id="game-play-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-slate-900/90 backdrop-blur-sm"></div>
-        <div class="bg-white w-full max-w-sm rounded-[2rem] p-6 relative z-10 shadow-2xl">
-            <div class="flex justify-between items-center mb-6">
+        <div class="bg-white w-full max-w-sm rounded-[2rem] p-6 relative z-10">
+            <div class="flex justify-between mb-6">
                 <span id="game-title-active" class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-xs font-black">GAME</span>
-                <div class="text-right">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase">Skor</p>
-                    <p id="game-score" class="text-lg font-black text-blue-600">0</p>
-                </div>
+                <p id="game-score" class="text-lg font-black text-blue-600">0</p>
             </div>
-            
-            <!-- Area Pertanyaan -->
-            <div id="question-container" class="text-center py-8">
-                <h3 id="question-text" class="text-xl font-bold text-slate-800 leading-relaxed mb-6">Memuat pertanyaan...</h3>
-                <div id="options-grid" class="grid grid-cols-1 gap-3">
-                    <!-- Tombol pilihan akan muncul di sini -->
-                </div>
-                <!-- Input Khusus MTK -->
+            <div id="question-container" class="text-center py-4">
+                <h3 id="question-text" class="text-xl font-bold mb-6 text-slate-800"></h3>
+                <div id="options-grid" class="grid grid-cols-1 gap-3"></div>
                 <div id="mtk-input-area" class="hidden">
-                    <input type="number" id="mtk-answer" class="w-full bg-slate-100 p-4 rounded-2xl text-center text-2xl font-black outline-none focus:ring-4 focus:ring-blue-300" placeholder="?">
+                    <input type="number" id="mtk-answer" class="w-full bg-slate-100 p-4 rounded-2xl text-center text-2xl font-black outline-none" placeholder="?">
                     <button onclick="checkMtkAnswer()" class="w-full mt-4 bg-blue-600 text-white py-4 rounded-2xl font-bold">JAWAB</button>
                 </div>
             </div>
-
             <p id="game-feedback" class="text-center mt-4 font-bold h-6"></p>
-            <button onclick="closeGamePlay()" class="w-full mt-6 text-slate-400 font-bold text-sm uppercase tracking-widest">Berhenti</button>
+            <button onclick="closeGamePlay()" class="w-full mt-6 text-slate-400 font-bold text-xs uppercase">Berhenti</button>
         </div>
     </div>
 
     <script>
-        // FIREBASE CONFIG
+        // CONFIG FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyDpkVNmfyqx76jfZV0T9N0pye4Q0p9G2lk",
             authDomain: "tabungankeluarga-a091f.firebaseapp.com",
@@ -221,188 +160,34 @@
         };
         const userPasswords = { "AYAH": "ayah", "BUNDA": "bunda", "AA GIBRAN": "gibran", "KAKAK FIYA": "fiya", "ABANG RAYSHAKA": "abang" };
 
-        // DATA GAME
         const quizData = {
             IPA: [
                 { q: "Apa pusat tata surya kita?", a: "Matahari", o: ["Bumi", "Matahari", "Bulan", "Mars"] },
-                { q: "Hewan yang memakan tumbuhan disebut?", a: "Herbivora", o: ["Karnivora", "Omnivora", "Herbivora", "Spora"] },
-                { q: "Benda yang ditarik magnet biasanya terbuat dari?", a: "Besi", o: ["Kayu", "Plastik", "Kaca", "Besi"] },
-                { q: "Proses tumbuhan memasak makanan disebut?", a: "Fotosintesis", o: ["Oksidasi", "Fotosintesis", "Respirasi", "Erosi"] },
-  { q: "Bunyi tidak dapat merambat di dalam?", a: "Ruang hampa", o: ["Air", "Udara", "Besi", "Ruang hampa"] },
-  { q: "Bagian tumbuhan yang berfungsi menyerap air dari dalam tanah adalah?", a: "Akar", o: ["Daun", "Batang", "Akar", "Bunga"] },
-  { q: "Proses pembuatan makanan oleh tumbuhan hijau disebut?", a: "Fotosintesis", o: ["Respirasi", "Fotosintesis", "Oksidasi", "Adaptasi"] },
-  { q: "Hewan yang memakan tumbuhan saja disebut?", a: "Herbivora", o: ["Karnivora", "Herbivora", "Omnivora", "Insektivora"] },
-  { q: "Perubahan wujud benda dari gas menjadi cair disebut?", a: "Mengembun", o: ["Mencair", "Menyublim", "Menguap", "Mengembun"] },
-  { q: "Alat pernapasan pada ikan adalah?", a: "Insang", o: ["Paru-paru", "Trakea", "Insang", "Kulit"] },
-  { q: "Benda yang dapat ditarik kuat oleh magnet disebut?", a: "Feromagnetik", o: ["Diamagnetik", "Paramagnetik", "Feromagnetik", "Nonmagnetik"] },
-  { q: "Pusat tata surya kita adalah?", a: "Matahari", o: ["Bumi", "Bulan", "Matahari", "Jupiter"] },
-  { q: "Planet yang dijuluki sebagai Planet Merah adalah?", a: "Mars", o: ["Venus", "Mars", "Saturnus", "Merkurius"] },
-  { q: "Gaya yang terjadi karena dua permukaan benda saling bersentuhan adalah?", a: "Gaya gesek", o: ["Gaya pegas", "Gaya gravitasi", "Gaya magnet", "Gaya gesek"] },
-  { q: "Bagian mata yang berfungsi mengatur jumlah cahaya yang masuk adalah?", a: "Pupil", o: ["Retina", "Lensa", "Pupil", "Kornea"] },
-  { q: "Urutan rantai makanan yang benar adalah?", a: "Padi - Belalang - Katak - Ular", o: ["Padi - Ular - Katak", "Belalang - Padi - Katak", "Padi - Belalang - Katak - Ular", "Ular - Katak - Padi"] },
-  { q: "Kemampuan makhluk hidup untuk menyesuaikan diri dengan lingkungannya disebut?", a: "Adaptasi", o: ["Iritabilitas", "Adaptasi", "Evolusi", "Habitat"] },
-  { q: "Energi panas matahari sampai ke bumi dengan cara?", a: "Radiasi", o: ["Konduksi", "Konveksi", "Radiasi", "Induksi"] },
-  { q: "Benda yang tidak dapat ditembus oleh cahaya disebut benda?", a: "Gelap", o: ["Bening", "Transparan", "Gelap", "Buram"] },
-  { q: "Berikut ini yang termasuk benda gas adalah?", a: "Asap", o: ["Es", "Minyak", "Asap", "Kaca"] },
-  { q: "Tumbuhan yang menyimpan cadangan makanan di umbi batang adalah?", a: "Kentang", o: ["Wortel", "Kentang", "Singkong", "Tebu"] },
-  { q: "Hewan yang mengalami metamorfosis sempurna adalah?", a: "Kupu-kupu", o: ["Kecoa", "Belalang", "Kupu-kupu", "Jangkrik"] },
-  { q: "Sendi yang memungkinkan gerakan ke segala arah adalah?", a: "Sendi peluru", o: ["Sendi engsel", "Sendi pelana", "Sendi peluru", "Sendi putar"] },
-  { q: "Fungsi batang pada tumbuhan adalah?", a: "Menyalurkan air dan zat hara", o: ["Menyerap air", "Tempat fotosintesis", "Menyalurkan air dan zat hara", "Alat perkembangbiakan"] },
-  { q: "Kaktus menyesuaikan diri di gurun dengan cara?", a: "Daun berbentuk duri", o: ["Daun yang lebar", "Batang yang kecil", "Daun berbentuk duri", "Akar yang pendek"] },
-  { q: "Bunyi pantul yang terdengar setelah bunyi asli selesai diucapkan disebut?", a: "Gema", o: ["Gaung", "Gema", "Resonansi", "Frekuensi"] },
-  { q: "Sumber energi listrik yang menggunakan bahan kimia adalah?", a: "Baterai", o: ["Generator", "Turbin", "Baterai", "Panel surya"] },
-  { q: "Penguapan air laut dalam siklus air disebut?", a: "Evaporasi", o: ["Kondensasi", "Presipitasi", "Evaporasi", "Infiltrasi"] },
-  { q: "Gigi yang berfungsi untuk merobek makanan adalah?", a: "Gigi taring", o: ["Gigi seri", "Gigi geraham", "Gigi taring", "Gigi susu"] },
-  { q: "Zat hijau daun pada tumbuhan disebut?", a: "Klorofil", o: ["Stomata", "Klorofil", "Kambium", "Floem"] },
-  { q: "Benda yang dapat menghantarkan panas dengan baik disebut?", a: "Konduktor", o: ["Isolator", "Konduktor", "Radiator", "Adaptor"] },
-  { q: "Contoh hewan insektivora (pemakan serangga) adalah?", a: "Cicak", o: ["Sapi", "Harimau", "Cicak", "Kelinci"] },
-  { q: "Lapisan udara yang menyelimuti bumi disebut?", a: "Atmosfer", o: ["Hidrosfer", "Litosfer", "Atmosfer", "Biosfer"] },
-  { q: "Satuan untuk mengukur suhu adalah?", a: "Celsius", o: ["Meter", "Kilogram", "Celsius", "Liter"] },
-  { q: "Fungsi rangka manusia adalah sebagai berikut, kecuali?", a: "Mengalirkan darah", o: ["Melindungi organ vital", "Tempat melekat otot", "Menopang tubuh", "Mengalirkan darah"] },
-  { q: "Cahaya dapat dibiaskan jika melewati?", a: "Dua medium berbeda kerapatan", o: ["Cermin datar", "Benda gelap", "Dua medium berbeda kerapatan", "Ruang hampa"] },
-  { q: "Perpindahan panas melalui zat perantara tanpa diikuti perpindahan partikelnya disebut?", a: "Konduksi", o: ["Konveksi", "Konduksi", "Radiasi", "Evaporasi"] },
-  { q: "Hewan yang berkembang biak dengan cara bertelur disebut?", a: "Ovipar", o: ["Vivipar", "Ovovivipar", "Ovipar", "Fragmentasi"] },
-  { q: "Bagian bunga yang berfungsi sebagai alat kelamin jantan adalah?", a: "Benang sari", o: ["Putik", "Benang sari", "Mahkota", "Kelopak"] },
-  { q: "Tanaman yang berkembang biak dengan tunas adalah?", a: "Pisang", o: ["Mangga", "Pisang", "Mawar", "Jagung"] },
-  { q: "Gaya yang menyebabkan buah jatuh dari pohon ke tanah adalah?", a: "Gaya gravitasi", o: ["Gaya magnet", "Gaya otot", "Gaya gravitasi", "Gaya mesin"] },
-  { q: "Penyakit tulang yang disebabkan kekurangan kalsium adalah?", a: "Osteoporosis", o: ["Rakhitis", "Osteoporosis", "Anemia", "Rematik"] },
-  { q: "Berapa lama bumi melakukan satu kali rotasi?", a: "24 jam", o: ["12 jam", "24 jam", "30 hari", "365 hari"] },
-  { q: "Alat untuk mengukur besar kecilnya gaya adalah?", a: "Dinamometer", o: ["Termometer", "Barometer", "Dinamometer", "Speedometer"] },
-  { q: "Perubahan wujud dari padat langsung menjadi gas disebut?", a: "Menyublim", o: ["Menguap", "Mengkristal", "Menyublim", "Mencair"] },
-  { q: "Ibu jari manusia memiliki sendi?", a: "Sendi pelana", o: ["Sendi putar", "Sendi geser", "Sendi pelana", "Sendi engsel"] },
-  { q: "Kelompok hewan yang bernapas dengan trakea adalah?", a: "Serangga", o: ["Burung", "Serangga", "Amfibi", "Mamalia"] },
-  { q: "Cermin yang permukaannya melengkung ke dalam disebut?", a: "Cermin cekung", o: ["Cermin cembung", "Cermin datar", "Cermin cekung", "Cermin ganda"] },
-  { q: "Bunyi yang frekuensinya di atas 20.000 Hz disebut?", a: "Ultrasonik", o: ["Infrasonik", "Audiosonik", "Ultrasonik", "Supersonik"] },
-  { q: "Vitamin yang baik untuk kesehatan mata adalah?", a: "Vitamin A", o: ["Vitamin A", "Vitamin B", "Vitamin C", "Vitamin D"] },
-  { q: "Pelestarian makhluk hidup di dalam habitat aslinya disebut pelestarian?", a: "In situ", o: ["Ex situ", "In situ", "Abiotik", "Biotik"] },
-  { q: "Tumbuhan bernapas melalui mulut daun yang disebut?", a: "Stomata", o: ["Lentisel", "Stomata", "Kloroplas", "Akar gantung"] },
-  { q: "Benda berikut yang termasuk isolator panas adalah?", a: "Kayu", o: ["Besi", "Aluminium", "Tembaga", "Kayu"] },
-  { q: "Hubungan antara dua makhluk hidup yang saling menguntungkan disebut simbiosis?", a: "互惠 (Mutuallisme)", o: ["Parasitisme", "Komensalisme", "Mutualisme", "Amensalisme"] },
-                { q: "Perubahan benda dari gas menjadi cair disebut?", a: "Mengembun", o: ["Membeku", "Menguap", "Mengembun", "Menyublim"] }
+                { q: "Hewan pemakan tumbuhan disebut?", a: "Herbivora", o: ["Karnivora", "Omnivora", "Herbivora", "Spora"] },
+                { q: "Planet Merah adalah sebutan untuk?", a: "Mars", o: ["Venus", "Mars", "Jupiter", "Saturnus"] },
+                { q: "Ikan bernapas menggunakan?", a: "Insang", o: ["Paru-paru", "Kulit", "Insang", "Trakea"] },
+                { q: "Zat hijau daun disebut?", a: "Klorofil", o: ["Klorofil", "Stomata", "Enzim", "Oksigen"] }
             ],
             IPS: [
-                { q: "Apa nama ibu kota Indonesia saat ini?", a: "Jakarta", o: ["Surabaya", "Bandung", "Jakarta", "IKN"] },
-                { q: "Indonesia terletak di antara dua benua, yaitu?", a: "Asia dan Australia", o: ["Asia dan Eropa", "Asia dan Australia", "Afrika dan Asia", "Amerika dan Asia"] },
-                { q: "Alat tukar yang sah di negara kita adalah?", a: "Rupiah", o: ["Dollar", "Yen", "Rupiah", "Ringgit"] },
-                { q: "Gunung tertinggi di pulau Jawa adalah?", a: "Semeru", o: ["Merapi", "Semeru", "Slamet", "Bromo"] },
-                { q: "Berapakah jumlah provinsi di Indonesia saat ini?", a: "38", o: ["34", "36", "37", "38"] },
-                { q: "Apa nama ibu kota negara Indonesia?", a: "Jakarta", o: ["Bandung", "Surabaya", "Jakarta", "Medan"] },
-  { q: "Peninggalan sejarah Candi Borobudur terletak di provinsi?", a: "Jawa Tengah", o: ["Jawa Timur", "Jawa Tengah", "Yogyakarta", "Jawa Barat"] },
-  { q: "Kegiatan menghasilkan barang atau jasa disebut?", a: "Produksi", o: ["Konsumsi", "Distribusi", "Produksi", "Transportasi"] },
-  { q: "Negara anggota ASEAN yang tidak pernah dijajah adalah?", a: "Thailand", o: ["Malaysia", "Vietnam", "Thailand", "Filipina"] },
-  { q: "Garis khayal yang membagi bumi menjadi bagian Utara dan Selatan adalah?", a: "Khatulistiwa", o: ["Garis Bujur", "Khatulistiwa", "Garis Meridian", "Garis Lintang"] },
-  { q: "Pahlawan yang dijuluki sebagai Bapak Pendidikan Nasional adalah?", a: "Ki Hajar Dewantara", o: ["Ir. Soekarno", "Moh. Hatta", "Ki Hajar Dewantara", "R.A. Kartini"] },
-  { q: "Batas wilayah Indonesia sebelah Utara yang berupa daratan adalah?", a: "Malaysia", o: ["Australia", "Singapura", "Papua Nugini", "Malaysia"] },
-  { q: "Alat tukar yang sah dalam kegiatan ekonomi disebut?", a: "Uang", o: ["Barter", "Emas", "Uang", "Cek"] },
-  { q: "Puncak tertinggi di Indonesia terdapat di pegunungan?", a: "Jayawijaya", o: ["Barisan", "Tengger", "Jayawijaya", "Merapi"] },
-  { q: "Benua terkecil di dunia adalah?", a: "Australia", o: ["Eropa", "Asia", "Australia", "Afrika"] },
-  { q: "Peristiwa Sumpah Pemuda terjadi pada tanggal?", a: "28 Oktober 1928", o: ["17 Agustus 1945", "20 Mei 1908", "28 Oktober 1928", "10 November 1945"] },
-  { q: "Samudra yang membatasi Indonesia di sebelah Barat adalah?", a: "Hindia", o: ["Pasifik", "Hindia", "Atlantik", "Arktik"] },
-  { q: "Kegiatan menyalurkan barang dari produsen ke konsumen disebut?", a: "Distribusi", o: ["Produksi", "Konsumsi", "Distribusi", "Ekspansi"] },
-  { q: "Kerajaan Hindu tertua di Indonesia adalah?", a: "Kutai", o: ["Tarumanegara", "Majapahit", "Kutai", "Sriwijaya"] },
-  { q: "Lagu kebangsaan Indonesia Raya diciptakan oleh?", a: "W.R. Supratman", o: ["Ibu Sud", "W.R. Supratman", "C. Simanjuntak", "Kusbini"] },
-  { q: "Jenis koperasi yang anggotanya terdiri dari para guru atau siswa disebut?", a: "Koperasi Sekolah", o: ["KUD", "Koperasi Produksi", "Koperasi Sekolah", "Koperasi Simpan Pinjam"] },
-  { q: "Suku Asmat merupakan suku bangsa yang berasal dari?", a: "Papua", o: ["Maluku", "Papua", "NTT", "Sulawesi"] },
-  { q: "Pemerintah tingkat daerah yang dipimpin oleh seorang Bupati adalah?", a: "Kabupaten", o: ["Provinsi", "Kecamatan", "Kabupaten", "Kota"] },
-  { q: "Proklamasi Kemerdekaan Indonesia dibacakan di jalan?", a: "Pegangsaan Timur No. 56", o: ["Imam Bonjol No. 1", "Pegangsaan Timur No. 56", "Medan Merdeka", "Diponegoro"] },
-  { q: "Mata uang negara Singapura adalah?", a: "Dolar", o: ["Ringgit", "Rupiah", "Dolar", "Peso"] },
-  { q: "Sikap menghargai perbedaan suku, agama, dan budaya disebut?", a: "Toleransi", o: ["Nasionalisme", "Patriotisme", "Toleransi", "Egosentris"] },
-  { q: "Benua yang dijuluki sebagai Benua Biru adalah?", a: "Eropa", o: ["Asia", "Eropa", "Amerika", "Afrika"] },
-  { q: "Gunung tertinggi di Pulau Jawa adalah?", a: "Semeru", o: ["Slamet", "Merapi", "Semeru", "Bromo"] },
-  { q: "Kegiatan memakai atau menghabiskan kegunaan barang disebut?", a: "Konsumsi", o: ["Produksi", "Distribusi", "Konsumsi", "Investasi"] },
-  { q: "Nama organisasi negara-negara di kawasan Asia Tenggara adalah?", a: "ASEAN", o: ["PBB", "APEC", "ASEAN", "WHO"] },
-  { q: "Kerajaan Sriwijaya mencapai puncak kejayaan pada masa Raja?", a: "Balaputradewa", o: ["Hayam Wuruk", "Mulawarman", "Balaputradewa", "Purnawarman"] },
-  { q: "Provinsi termuda di Indonesia (ke-38) adalah?", a: "Papua Barat Daya", o: ["Papua Selatan", "Papua Barat Daya", "Banten", "Kaltara"] },
-  { q: "Indonesia terletak di antara dua samudra, yaitu?", a: "Hindia dan Pasifik", o: ["Hindia dan Atlantik", "Hindia dan Pasifik", "Pasifik dan Atlantik", "Arktik dan Hindia"] },
-  { q: "Rumah adat Sumatera Barat yang atapnya menyerupai tanduk kerbau disebut?", a: "Rumah Gadang", o: ["Rumah Joglo", "Rumah Gadang", "Rumah Honai", "Rumah Limas"] },
-  { q: "Negara tetangga Indonesia yang berbatasan darat di Pulau Kalimantan adalah?", a: "Malaysia", o: ["Brunei Darussalam", "Malaysia", "Singapura", "Filipina"] },
-  { q: "Teks Proklamasi diketik oleh?", a: "Sayuti Melik", o: ["Sukarni", "Moh. Hatta", "Sayuti Melik", "Ahmad Subardjo"] },
-  { q: "Kerja sama ekonomi antar dua negara disebut kerja sama?", a: "Bilateral", o: ["Multilateral", "Bilateral", "Regional", "Internasional"] },
-  { q: "Sungai terpanjang di Indonesia adalah?", a: "Kapuas", o: ["Mahakam", "Musi", "Kapuas", "Bengawan Solo"] },
-  { q: "Candi Prambanan merupakan peninggalan dari corak agama?", a: "Hindu", o: ["Buddha", "Hindu", "Islam", "Kristen"] },
-  { q: "Negara yang dijuluki sebagai Negeri Gajah Putih adalah?", a: "Thailand", o: ["Laos", "Thailand", "Kamboja", "Myanmar"] },
-  { q: "Pahlawan wanita yang berasal dari Aceh adalah?", a: "Cut Nyak Dien", o: ["R.A. Kartini", "Cut Nyak Dien", "Dewi Sartika", "Martha Christina Tiahahu"] },
-  { q: "Sumber daya alam yang tidak dapat diperbarui adalah?", a: "Minyak bumi", o: ["Hutan", "Air", "Minyak bumi", "Tanah"] },
-  { q: "Jenis tanaman yang cocok ditanam di dataran tinggi adalah?", a: "Teh", o: ["Padi", "Kelapa", "Teh", "Bakau"] },
-  { q: "Peninggalan sejarah yang berupa tulisan pada batu disebut?", a: "Prasasti", o: ["Arca", "Prasasti", "Relief", "Kitab"] },
-  { q: "Pelabuhan yang terletak di Surabaya adalah?", a: "Tanjung Perak", o: ["Tanjung Priok", "Tanjung Perak", "Bakauheni", "Belawan"] },
-  { q: "Bapak Proklamator Indonesia adalah?", a: "Soekarno dan Moh. Hatta", o: ["Soeharto", "Soekarno dan Moh. Hatta", "Jokowi", "Gus Dur"] },
-  { q: "Barang yang dikirim dari dalam negeri ke luar negeri disebut barang?", a: "Ekspor", o: ["Impor", "Ekspor", "Barter", "Subsidi"] },
-  { q: "Tokoh yang menjahit bendera Merah Putih pertama adalah?", a: "Fatmawati", o: ["Kartini", "Fatmawati", "Megawati", "Cut Nyak Dien"] },
-  { q: "Dataran rendah memiliki ketinggian antara?", a: "0 - 200 meter", o: ["0 - 200 meter", "500 - 1000 meter", "Di atas 1000 meter", "200 - 500 meter"] },
-  { q: "Organisasi bentukan Jepang yang dipimpin oleh Empat Serangkai adalah?", a: "Putera", o: ["BPUPKI", "PPKI", "Putera", "PETA"] },
-  { q: "Alat musik angklung berasal dari daerah?", a: "Jawa Barat", o: ["Jawa Tengah", "Jawa Barat", "Sumatera Utara", "Bali"] },
-  { q: "Sensus penduduk di Indonesia dilakukan setiap?", a: "10 tahun", o: ["2 tahun", "5 tahun", "10 tahun", "15 tahun"] },
-  { q: "Lembaga yang berwenang mencetak uang rupiah adalah?", a: "Bank Indonesia", o: ["BRI", "Bank Indonesia", "Pegadaian", "Kementerian Keuangan"] },
-  { q: "Hutan yang berfungsi melindungi pantai dari abrasi adalah?", a: "Hutan bakau", o: ["Hutan pinus", "Hutan jati", "Hutan bakau", "Hutan hujan tropis"] },
-  { q: "Kepanjangan dari NKRI adalah?", a: "Negara Kesatuan Republik Indonesia", o: ["Negara Keadilan Rakyat Indonesia", "Negara Kesatuan Rakyat Indonesia", "Negara Kesatuan Republik Indonesia", "Negara Kebangsaan Republik Indonesia"] }
+                { q: "Ibu kota Indonesia saat ini?", a: "Jakarta", o: ["Surabaya", "Bandung", "Jakarta", "IKN"] },
+                { q: "Mata uang Indonesia?", a: "Rupiah", o: ["Dollar", "Yen", "Rupiah", "Ringgit"] },
+                { q: "Pulau terbesar di Indonesia?", a: "Kalimantan", o: ["Jawa", "Bali", "Kalimantan", "Sulawesi"] },
+                { q: "Kegiatan menghasilkan barang?", a: "Produksi", o: ["Konsumsi", "Distribusi", "Produksi", "Investasi"] }
             ],
             SEJARAH: [
-                { q: "Siapakah Bapak Proklamator Indonesia?", a: "Ir. Soekarno", o: ["Moh. Hatta", "Ir. Soekarno", "Soeharto", "Ki Hajar Dewantara"] },
-                { q: "Kapan Indonesia merdeka?", a: "17 Agustus 1945", o: ["17 Agustus 1945", "20 Mei 1908", "28 Oktober 1928", "1 Juni 1945"] },
-                { q: "Sumpah Pemuda terjadi pada tanggal?", a: "28 Oktober", o: ["17 Agustus", "20 Mei", "28 Oktober", "10 November"] },
-                { q: "Candi Borobudur terletak di provinsi?", a: "Jawa Tengah", o: ["Jawa Timur", "Jawa Tengah", "Yogyakarta", "Bali"] },
-                { q: "Siapa penemu benua Amerika?", a: "Christopher Columbus", o: ["Marco Polo", "Christopher Columbus", "Vasco da Gama", "Magelhaens"] },
-                { q: "Siapakah tokoh yang membacakan teks Proklamasi Kemerdekaan Indonesia?", a: "Ir. Soekarno", o: ["Moh. Hatta", "Ir. Soekarno", "Sayuti Melik", "Ahmad Subardjo"] },
-  { q: "Kerajaan Islam pertama di Indonesia adalah?", a: "Samudera Pasai", o: ["Demak", "Banten", "Mataram", "Samudera Pasai"] },
-  { q: "Perlawanan rakyat Maluku melawan Belanda dipimpin oleh?", a: "Pattimura", o: ["Pangeran Diponegoro", "Pattimura", "Sultan Hasanuddin", "Tuanku Imam Bonjol"] },
-  { q: "Teks Proklamasi disusun di rumah?", a: "Laksamana Maeda", o: ["Ir. Soekarno", "Moh. Hatta", "Laksamana Maeda", "Radjiman Wedyodiningrat"] },
-  { q: "Sultan Hasanuddin adalah raja yang gagah berani dari kerajaan?", a: "Gowa-Tallo", o: ["Bone", "Ternate", "Gowa-Tallo", "Tidore"] },
-  { q: "Organisasi pergerakan nasional pertama di Indonesia adalah?", a: "Budi Utomo", o: ["Sarekat Islam", "Indische Partij", "Budi Utomo", "Muhammadiyah"] },
-  { q: "Kerajaan Hindu yang membangun Candi Prambanan adalah?", a: "Mataram Kuno", o: ["Singasari", "Majapahit", "Mataram Kuno", "Kutai"] },
-  { q: "Bangsa Eropa yang pertama kali datang dan menjajah Indonesia adalah?", a: "Portugis", o: ["Belanda", "Inggris", "Portugis", "Spanyol"] },
-  { q: "Peristiwa penculikan Soekarno-Hatta ke luar kota menjelang proklamasi disebut?", a: "Peristiwa Rengasdengklok", o: ["Peristiwa 10 November", "Peristiwa Rengasdengklok", "Bandung Lautan Api", "Tragedi Nasional"] },
-  { q: "Siapa yang menjahit bendera pusaka Merah Putih?", a: "Ibu Fatmawati", o: ["R.A. Kartini", "Ibu Fatmawati", "Cut Nyak Dien", "Dewi Sartika"] },
-  { q: "Sumpah Palapa yang ingin menyatukan Nusantara diucapkan oleh?", a: "Gajah Mada", o: ["Hayam Wuruk", "Raden Wijaya", "Gajah Mada", "Ken Arok"] },
-  { q: "Kerajaan Buddha terbesar di Indonesia yang juga pusat ilmu agama adalah?", a: "Sriwijaya", o: ["Tarumanegara", "Sriwijaya", "Kalingga", "Pajajaran"] },
-  { q: "Tokoh yang dikenal sebagai Bapak Pendidikan Nasional adalah?", a: "Ki Hajar Dewantara", o: ["Dr. Sutomo", "Ki Hajar Dewantara", "Moh. Yamin", "H.O.S Cokroaminoto"] },
-  { q: "Belanda menyerah tanpa syarat kepada Jepang di daerah?", a: "Kalijati", o: ["Linggarjati", "Kalijati", "Roem-Royen", "Salatiga"] },
-  { q: "Pemimpin pasukan Belanda dalam Perang Diponegoro adalah?", a: "De Kock", o: ["Daendels", "Van den Bosch", "De Kock", "Raffles"] },
-  { q: "Ibu kota Kerajaan Majapahit terletak di?", a: "Trowulan", o: ["Kediri", "Trowulan", "Singasari", "Demak"] },
-  { q: "Kerja paksa pada zaman penjajahan Jepang disebut?", a: "Romusha", o: ["Kerja Rodi", "Romusha", "Tanam Paksa", "Devide et Impera"] },
-  { q: "Gubernur Jenderal Belanda yang menerapkan sistem Tanam Paksa adalah?", a: "Van den Bosch", o: ["Daendels", "Raffles", "Van den Bosch", "Janssens"] },
-  { q: "Nama asli Pangeran Diponegoro adalah?", a: "Raden Mas Ontowiryo", o: ["Raden Patah", "Raden Mas Ontowiryo", "Raden Wijaya", "Sultan Agung"] },
-  { q: "BPUPKI dibentuk oleh Jepang dengan tujuan untuk?", a: "Mempersiapkan kemerdekaan", o: ["Membantu Jepang perang", "Mempersiapkan kemerdekaan", "Menindas rakyat", "Membangun jalan"] },
-  { q: "Ketua BPUPKI adalah?", a: "dr. Radjiman Wedyodiningrat", o: ["Ir. Soekarno", "Moh. Hatta", "dr. Radjiman Wedyodiningrat", "Suryo"] },
-  { q: "Hari Kebangkitan Nasional diperingati setiap tanggal?", a: "20 Mei", o: ["2 Mei", "20 Mei", "1 Juni", "17 Agustus"] },
-  { q: "Candi Borobudur dibangun pada masa kerajaan?", a: "Mataram Kuno", o: ["Sriwijaya", "Singasari", "Mataram Kuno", "Majapahit"] },
-  { q: "Perang besar di Sumatera Barat antara kaum Padri dan kaum Adat disebut?", a: "Perang Padri", o: ["Perang Diponegoro", "Perang Padri", "Perang Aceh", "Perang Puputan"] },
-  { q: "Tokoh yang memimpin perlawanan di Aceh dan dikenal sangat tangguh adalah?", a: "Cut Nyak Dien", o: ["Nyi Ageng Serang", "Cut Nyak Dien", "Dewi Sartika", "Christina Tiahahu"] },
-  { q: "Laksamana yang memberikan jaminan keamanan saat penyusunan teks proklamasi?", a: "Maeda", o: ["Yamamoto", "Maeda", "Nagano", "Hirohito"] },
-  { q: "Semboyan 'Bhinneka Tunggal Ika' diambil dari kitab Sutasoma karya?", a: "Empu Tantular", o: ["Empu Prapanca", "Empu Tantular", "Empu Sedah", "Empu Panuluh"] },
-  { q: "Peristiwa perobekan bendera Belanda (merah-putih-biru) terjadi di hotel?", a: "Yamato", o: ["Majapahit", "Yamato", "Indonesia", "Borobudur"] },
-  { q: "Pahlawan yang memimpin pertempuran 10 November di Surabaya adalah?", a: "Bung Tomo", o: ["Jenderal Sudirman", "Bung Tomo", "Gatot Subroto", "Suryo"] },
-  { q: "VOC (Perkumpulan Dagang Belanda) didirikan pada tahun?", a: "1602", o: ["1596", "1602", "1799", "1800"] },
-  { q: "Raja Kerajaan Kediri yang terkenal dengan ramalannya adalah?", a: "Jayabaya", o: ["Kertajaya", "Jayabaya", "Ken Arok", "Kertanegara"] },
-  { q: "Sistem kerja paksa pada masa pemerintahan Daendels disebut?", a: "Kerja Rodi", o: ["Romusha", "Tanam Paksa", "Kerja Rodi", "Landrent"] },
-  { q: "Berapa lama Belanda menjajah Indonesia secara umum?", a: "350 tahun", o: ["3,5 tahun", "100 tahun", "350 tahun", "200 tahun"] },
-  { q: "Nama organisasi militer bentukan Jepang untuk pemuda Indonesia adalah?", a: "PETA", o: ["Keibodan", "Seinendan", "PETA", "Fujinkai"] },
-  { q: "Prasasti Ciaruteun merupakan peninggalan dari kerajaan?", a: "Tarumanegara", o: ["Kutai", "Tarumanegara", "Pajajaran", "Majapahit"] },
-  { q: "Sultan Ageng Tirtayasa merupakan pahlawan yang berasal dari?", a: "Banten", o: ["Cirebon", "Banten", "Mataram", "Makassar"] },
-  { q: "Hari lahir Pancasila diperingati setiap tanggal?", a: "1 Juni", o: ["1 Oktober", "1 Juni", "17 Agustus", "20 Mei"] },
-  { q: "Perjanjian yang mengakhiri konflik Indonesia-Belanda dan mengakui kedaulatan RI adalah?", a: "KMB", o: ["Linggarjati", "Renville", "Roem-Royen", "KMB"] },
-  { q: "Pendiri Kerajaan Majapahit adalah?", a: "Raden Wijaya", o: ["Hayam Wuruk", "Gajah Mada", "Raden Wijaya", "Ken Arok"] },
-  { q: "Raja terkenal dari Kerajaan Kutai yang menyedekahkan 20.000 ekor sapi adalah?", a: "Mulawarman", o: ["Kudungga", "Asmawarman", "Mulawarman", "Purnawarman"] },
-  { q: "Isi Sumpah Pemuda yang kedua adalah?", a: "Berbangsa satu bangsa Indonesia", o: ["Bertanah air satu", "Berbahasa satu", "Berbangsa satu bangsa Indonesia", "Bernegara satu"] },
-  { q: "Siapa pencetus sistem Tanam Paksa (Cultuurstelsel)?", a: "Van den Bosch", o: ["Daendels", "Raffles", "Van den Bosch", "Speelman"] },
-  { q: "Kapan Jepang menyerah kepada Sekutu?", a: "14 Agustus 1945", o: ["17 Agustus 1945", "14 Agustus 1945", "10 Agustus 1945", "15 Agustus 1945"] },
-  { q: "Panglima besar TNI pertama yang memimpin perang gerilya adalah?", a: "Jenderal Sudirman", o: ["Urip Sumoharjo", "Ahmad Yani", "Jenderal Sudirman", "Suharto"] },
-  { q: "Candi Mendut dan Candi Sewu bercorak agama?", a: "Buddha", o: ["Hindu", "Buddha", "Islam", "Kristen"] },
-  { q: "Kerajaan Sriwijaya terletak di provinsi?", a: "Sumatera Selatan", o: ["Sumatera Barat", "Riau", "Sumatera Selatan", "Jambi"] },
-  { q: "Tujuan bangsa Barat ke Indonesia adalah 'Gold', yang artinya?", a: "Mencari kekayaan", o: ["Mencari kejayaan", "Mencari kekayaan", "Menyebarkan agama", "Mencari rempah"] },
-  { q: "Istana tempat tinggal raja di Jawa disebut?", a: "Keraton", o: ["Puri", "Keraton", "Candi", "Pendopo"] },
-  { q: "Nama samaran Douwes Dekker dalam bukunya Max Havelaar adalah?", a: "Multatuli", o: ["Ki Hajar Dewantara", "Multatuli", "Danudirja Setiabudi", "Tiga Serangkai"] },
-  { q: "Perlawanan rakyat Bali melawan Belanda yang dilakukan sampai titik darah penghabisan disebut?", a: "Puputan", o: ["Gerilya", "Puputan", "Sabil", "Padri"] }
+                { q: "Siapa Bapak Proklamator?", a: "Ir. Soekarno", o: ["Moh. Hatta", "Ir. Soekarno", "Soeharto", "Ki Hajar Dewantara"] },
+                { q: "Tahun berapa Indonesia Merdeka?", a: "1945", o: ["1942", "1945", "1950", "1935"] },
+                { q: "Candi Borobudur ada di?", a: "Jawa Tengah", o: ["Jawa Timur", "Jawa Tengah", "Yogyakarta", "Bali"] }
             ]
         };
 
-        // LOGIKA GAME DINAMIS
         let gameScore = 0;
         let currentGameType = "";
         let mtkCorrectAnswer = 0;
 
         function openGameMenu() { document.getElementById('game-dashboard').classList.remove('hidden'); }
         function closeGameMenu() { document.getElementById('game-dashboard').classList.add('hidden'); }
+        function closeGamePlay() { document.getElementById('game-play-modal').classList.add('hidden'); }
 
         function startGame(type) {
             currentGameType = type;
@@ -414,17 +199,11 @@
             nextQuestion();
         }
 
-        function closeGamePlay() {
-            document.getElementById('game-play-modal').classList.add('hidden');
-        }
-
         function nextQuestion() {
-            const feedback = document.getElementById('game-feedback');
-            feedback.innerText = "";
+            document.getElementById('game-feedback').innerText = "";
             const optionsGrid = document.getElementById('options-grid');
             const questionText = document.getElementById('question-text');
             const mtkArea = document.getElementById('mtk-input-area');
-            
             optionsGrid.innerHTML = "";
             mtkArea.classList.add('hidden');
 
@@ -432,83 +211,61 @@
                 mtkArea.classList.remove('hidden');
                 generateMtk();
             } else {
-                const questions = quizData[currentGameType];
-                const randomQ = questions[Math.floor(Math.random() * questions.length)];
-                questionText.innerText = randomQ.q;
-                
-                randomQ.o.forEach(opt => {
+                const list = quizData[currentGameType];
+                const q = list[Math.floor(Math.random() * list.length)];
+                questionText.innerText = q.q;
+                q.o.forEach(opt => {
                     const btn = document.createElement('button');
-                    btn.className = "w-full bg-slate-50 border-2 border-slate-100 p-4 rounded-2xl font-bold hover:bg-blue-50 hover:border-blue-500 transition-all text-slate-700";
+                    btn.className = "w-full bg-slate-50 border-2 border-slate-100 p-4 rounded-2xl font-bold hover:bg-blue-50 hover:border-blue-500 transition-all";
                     btn.innerText = opt;
-                    btn.onclick = () => checkQuizAnswer(opt, randomQ.a);
+                    btn.onclick = () => checkQuizAnswer(opt, q.a);
                     optionsGrid.appendChild(btn);
                 });
             }
         }
 
         function generateMtk() {
-            const level = Math.floor(gameScore / 30) + 1; // Level naik tiap skor 30
+            const level = Math.floor(gameScore / 30) + 1;
             let n1, n2, op;
+            if (level === 1) { n1 = Math.floor(Math.random()*10)+1; n2 = Math.floor(Math.random()*10)+1; op = '+'; }
+            else if (level === 2) { n1 = Math.floor(Math.random()*50)+10; n2 = Math.floor(Math.random()*50)+10; op = '-'; if(n1<n2) [n1,n2]=[n2,n1]; }
+            else { n1 = Math.floor(Math.random()*10)+2; n2 = Math.floor(Math.random()*10)+2; op = 'x'; }
             
-            if (level === 1) { // Tambah Kurang Sederhana
-                n1 = Math.floor(Math.random() * 10) + 1;
-                n2 = Math.floor(Math.random() * 10) + 1;
-                op = Math.random() > 0.5 ? '+' : '-';
-            } else if (level === 2) { // Angka Puluhan
-                n1 = Math.floor(Math.random() * 50) + 10;
-                n2 = Math.floor(Math.random() * 50) + 10;
-                op = Math.random() > 0.5 ? '+' : '-';
-            } else { // Perkalian Dasar
-                n1 = Math.floor(Math.random() * 10) + 2;
-                n2 = Math.floor(Math.random() * 10) + 2;
-                op = 'x';
-            }
-
-            if (op === '+') mtkCorrectAnswer = n1 + n2;
-            else if (op === '-') {
-                if (n1 < n2) [n1, n2] = [n2, n1]; // Hindari hasil negatif
-                mtkCorrectAnswer = n1 - n2;
-            } else mtkCorrectAnswer = n1 * n2;
-
-            document.getElementById('question-text').innerHTML = `<span class="text-xs text-slate-400 block uppercase">Level ${level}</span> ${n1} ${op} ${n2} = ?`;
+            mtkCorrectAnswer = op === '+' ? n1+n2 : (op === '-' ? n1-n2 : n1*n2);
+            document.getElementById('question-text').innerHTML = `<span class="text-[10px] block opacity-50">Level ${level}</span> ${n1} ${op} ${n2} = ?`;
             document.getElementById('mtk-answer').value = "";
             document.getElementById('mtk-answer').focus();
         }
 
-        function checkQuizAnswer(userAns, correct) {
-            const feedback = document.getElementById('game-feedback');
-            if (userAns === correct) {
-                gameScore += 10;
-                feedback.innerText = "✅ Betul! (+10)";
-                feedback.className = "text-center mt-4 font-bold text-green-500";
-                updateScoreDisplay();
-                setTimeout(nextQuestion, 1000);
-            } else {
-                feedback.innerText = "❌ Salah, coba lagi!";
-                feedback.className = "text-center mt-4 font-bold text-red-500";
-            }
+        function checkQuizAnswer(user, correct) {
+            const f = document.getElementById('game-feedback');
+            if(user === correct) { gameScore += 10; f.innerText = "✅ BETUL!"; f.className = "text-center mt-4 font-bold text-green-500"; updateScore(); setTimeout(nextQuestion, 800); }
+            else { f.innerText = "❌ SALAH, COBA LAGI"; f.className = "text-center mt-4 font-bold text-red-500"; }
         }
 
         function checkMtkAnswer() {
-            const userAns = parseInt(document.getElementById('mtk-answer').value);
-            const feedback = document.getElementById('game-feedback');
-            if (userAns === mtkCorrectAnswer) {
-                gameScore += 10;
-                feedback.innerText = "⭐ Keren! (+10)";
-                feedback.className = "text-center mt-4 font-bold text-blue-500";
-                updateScoreDisplay();
-                setTimeout(nextQuestion, 1000);
-            } else {
-                feedback.innerText = "❌ Masih salah...";
-                feedback.className = "text-center mt-4 font-bold text-red-400";
-            }
+            const user = parseInt(document.getElementById('mtk-answer').value);
+            const f = document.getElementById('game-feedback');
+            if(user === mtkCorrectAnswer) { gameScore += 10; f.innerText = "⭐ HEBAT!"; f.className = "text-center mt-4 font-bold text-blue-500"; updateScore(); setTimeout(nextQuestion, 800); }
+            else { f.innerText = "❌ COBA HITUNG LAGI"; f.className = "text-center mt-4 font-bold text-red-400"; }
         }
 
-        function updateScoreDisplay() {
-            document.getElementById('game-score').innerText = gameScore;
+        function updateScore() { document.getElementById('game-score').innerText = gameScore; }
+
+        const audio = document.getElementById('bg-music');
+        let isPlaying = false;
+        function toggleMusic() {
+            if (isPlaying) { audio.pause(); document.getElementById('music-icon').innerText = "🎵"; }
+            else { audio.play().catch(()=>{}); document.getElementById('music-icon').innerText = "⏸️"; }
+            isPlaying = !isPlaying; document.getElementById('music-btn').classList.toggle('music-active');
+        }
+        function changeSong() {
+            const newSrc = document.getElementById('song-selector').value;
+            document.getElementById('music-source').src = newSrc;
+            audio.load();
+            if(isPlaying) audio.play();
         }
 
-        // LOGIKA CORE (Login, Save, Load) - Tetap sama
         function login() {
             const user = document.getElementById('user-login').value;
             const pass = document.getElementById('pass-login').value;
@@ -519,14 +276,10 @@
                 document.getElementById('display-user').innerText = currentUser;
                 document.getElementById('user-avatar').src = userPhotos[currentUser];
                 document.getElementById('date').valueAsDate = new Date();
-                document.getElementById('filter-month').value = String(new Date().getMonth() + 1).padStart(2, '0');
-                if(currentUser === "AYAH") {
-                    document.getElementById('dashboard-ayah').classList.remove('hidden');
-                    document.getElementById('family-balance-card').classList.remove('hidden');
-                }
+                if(currentUser === "AYAH") document.getElementById('family-balance-card').classList.remove('hidden');
                 loadReport();
                 toggleMusic();
-            } else { alert("❌ PIN Salah!"); }
+            } else { alert("PIN Salah!"); }
         }
 
         function saveData() {
@@ -540,52 +293,46 @@
             }
         }
 
+        // FITUR HAPUS/KOREKSI
+        function deleteTransaction(id) {
+            if (confirm("Hapus transaksi ini?")) {
+                db.ref('transaksi/' + id).remove();
+            }
+        }
+
         function loadReport() {
-            const selectedMonth = document.getElementById('filter-month').value;
             db.ref('transaksi').on('value', (snapshot) => {
                 const listDiv = document.getElementById('transaction-list');
-                const summaryDiv = document.getElementById('user-summaries');
-                listDiv.innerHTML = ""; if(summaryDiv) summaryDiv.innerHTML = "";
-                let netBalance = 0; let myPersonalNet = 0; let dataArray = []; let userTotals = {};
-
+                listDiv.innerHTML = "";
+                let netBalance = 0; let myPersonal = 0;
+                let data = [];
                 snapshot.forEach((child) => {
                     const item = child.val();
-                    if (item.penginput === currentUser) myPersonalNet += (item.tipe === 'in' ? item.jumlah : -item.jumlah);
-                    if (item.tanggal.split('-')[1] === selectedMonth) {
-                        dataArray.push({ id: child.key, ...item });
-                        if (!userTotals[item.penginput]) userTotals[item.penginput] = { in: 0, out: 0 };
-                        if (item.tipe === 'in') { userTotals[item.penginput].in += item.jumlah; netBalance += item.jumlah; }
-                        else { userTotals[item.penginput].out += item.jumlah; netBalance -= item.jumlah; }
-                    }
+                    const key = child.key;
+                    data.push({...item, id: key});
+                    if (item.tipe === 'in') netBalance += item.jumlah; else netBalance -= item.jumlah;
+                    if (item.penginput === currentUser) { if(item.tipe === 'in') myPersonal += item.jumlah; else myPersonal -= item.jumlah; }
                 });
-
                 document.getElementById('total-balance').innerText = `Rp ${netBalance.toLocaleString()}`;
-                document.getElementById('my-personal-balance').innerText = `Rp ${myPersonalNet.toLocaleString()}`;
-
-                if(currentUser === "AYAH" && summaryDiv) {
-                    for (const user in userTotals) {
-                        summaryDiv.innerHTML += `<div class="bg-slate-800 p-3 rounded-2xl border border-slate-700">
-                            <p class="text-[10px] font-bold text-blue-300 mb-1 uppercase">${user}</p>
-                            <p class="text-white text-[11px] font-black">Net: ${(userTotals[user].in - userTotals[user].out).toLocaleString()}</p>
-                        </div>`;
-                    }
-                }
-
-                dataArray.sort((a,b) => b.waktu - a.waktu).forEach(item => {
+                document.getElementById('my-personal-balance').innerText = `Rp ${myPersonal.toLocaleString()}`;
+                
+                data.sort((a,b)=>b.waktu-a.waktu).forEach(item => {
                     const isInc = item.tipe === 'in';
+                    // CEK IZIN HAPUS: Master (Ayah) bisa hapus semua, Anggota hanya bisa hapus miliknya sendiri
+                    const canDelete = (currentUser === "AYAH" || item.penginput === currentUser);
+                    
                     listDiv.innerHTML += `<div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-center">
-                        <div><p class="text-sm font-bold text-slate-800">${item.keterangan}</p><p class="text-[10px] text-slate-400 font-black uppercase">${item.penginput} • ${item.tanggal}</p></div>
-                        <p class="font-black ${isInc ? 'text-green-600' : 'text-red-600'}">${isInc ? '+' : '-'} Rp ${item.jumlah.toLocaleString()}</p>
+                        <div class="flex-1">
+                            <p class="text-sm font-bold">${item.keterangan}</p>
+                            <p class="text-[10px] text-slate-400 uppercase">${item.penginput} • ${item.tanggal}</p>
+                        </div>
+                        <div class="text-right flex items-center gap-4">
+                            <p class="font-black ${isInc ? 'text-green-600' : 'text-red-600'}">${isInc ? '+' : '-'} Rp ${item.jumlah.toLocaleString()}</p>
+                            ${canDelete ? `<button onclick="deleteTransaction('${item.id}')" class="text-xs bg-red-50 text-red-500 p-2 rounded-lg hover:bg-red-500 hover:text-white transition-all">🗑️</button>` : ''}
+                        </div>
                     </div>`;
                 });
             });
-        }
-
-        const audio = document.getElementById('bg-music'); let isPlaying = false;
-        function toggleMusic() {
-            if (isPlaying) { audio.pause(); document.getElementById('music-icon').innerText = "🎵"; }
-            else { audio.play().catch(() => {}); document.getElementById('music-icon').innerText = "⏸️"; }
-            isPlaying = !isPlaying; document.getElementById('music-btn').classList.toggle('music-active');
         }
     </script>
 </body>
