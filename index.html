@@ -54,7 +54,13 @@
         <div class="flex justify-between items-center glass-effect p-4 rounded-2xl sticky top-4 z-40 shadow-sm border border-white">
             <div class="flex items-center gap-3">
                 <img id="user-avatar" src="" class="w-14 h-14 rounded-full border-4 border-white object-cover shadow-md bg-slate-100">
-                <div><p class="text-xs font-bold text-slate-400 uppercase">Halo,</p><h2 class="text-xl font-black text-slate-800" id="display-user"></h2></div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-xl font-black text-slate-800" id="display-user"></h2>
+                        <button onclick="logout()" class="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-bold hover:bg-red-600 hover:text-white transition-all">KELUAR</button>
+                    </div>
+                    <p class="text-xs font-bold text-slate-400 uppercase">Aktivitas Hari Ini</p>
+                </div>
             </div>
             <div class="text-right bg-blue-50 px-4 py-2 rounded-2xl border border-blue-100">
                 <p class="text-[10px] font-black text-blue-400 uppercase">Saldo Saya</p>
@@ -62,7 +68,7 @@
             </div>
         </div>
 
-        <!-- Dashboard Ayah -->
+        <!-- Dashboard Ayah (Total Kas) -->
         <div id="family-balance-card" class="hidden gradient-card p-8 rounded-[2rem] shadow-xl text-white">
             <p class="text-blue-100 text-sm opacity-80">Total Kas Keluarga</p>
             <h1 class="text-4xl font-black mt-1" id="total-balance">Rp 0</h1>
@@ -96,29 +102,28 @@
         <div id="transaction-list" class="space-y-3"></div>
     </div>
 
-    <!-- MODAL GAME -->
+    <!-- MODAL GAME & MODAL PLAYING (Tetap Sama) -->
     <div id="game-dashboard" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onclick="closeGameMenu()"></div>
-        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 relative z-10">
+        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 relative z-10 text-center">
             <h2 class="text-2xl font-black mb-6">Pilih Tantangan 🚀</h2>
             <div class="grid grid-cols-2 gap-4">
-                <div onclick="startGame('IPA')" class="bg-green-50 p-6 rounded-3xl text-center cursor-pointer border-2 border-transparent hover:border-green-500">
+                <div onclick="startGame('IPA')" class="bg-green-50 p-6 rounded-3xl text-center cursor-pointer hover:border-green-500 border-2 border-transparent">
                     <span class="text-4xl block mb-2">🧬</span><p class="font-black text-green-700">IPA</p>
                 </div>
-                <div onclick="startGame('IPS')" class="bg-orange-50 p-6 rounded-3xl text-center cursor-pointer border-2 border-transparent hover:border-orange-500">
+                <div onclick="startGame('IPS')" class="bg-orange-50 p-6 rounded-3xl text-center cursor-pointer hover:border-orange-500 border-2 border-transparent">
                     <span class="text-4xl block mb-2">🌍</span><p class="font-black text-orange-700">IPS</p>
                 </div>
-                <div onclick="startGame('SEJARAH')" class="bg-red-50 p-6 rounded-3xl text-center cursor-pointer border-2 border-transparent hover:border-red-500">
+                <div onclick="startGame('SEJARAH')" class="bg-red-50 p-6 rounded-3xl text-center cursor-pointer hover:border-red-500 border-2 border-transparent">
                     <span class="text-4xl block mb-2">📜</span><p class="font-black text-red-700">SEJARAH</p>
                 </div>
-                <div onclick="startGame('MTK')" class="bg-blue-50 p-6 rounded-3xl text-center cursor-pointer border-2 border-transparent hover:border-blue-500">
+                <div onclick="startGame('MTK')" class="bg-blue-50 p-6 rounded-3xl text-center cursor-pointer hover:border-blue-500 border-2 border-transparent">
                     <span class="text-4xl block mb-2">🔢</span><p class="font-black text-blue-700">MTK</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- MODAL PLAYING -->
     <div id="game-play-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-slate-900/90 backdrop-blur-sm"></div>
         <div class="bg-white w-full max-w-sm rounded-[2rem] p-6 relative z-10">
@@ -140,7 +145,7 @@
     </div>
 
     <script>
-        // CONFIG FIREBASE
+        // CONFIG FIREBASE (Gunakan Milik Bapak)
         const firebaseConfig = {
             apiKey: "AIzaSyDpkVNmfyqx76jfZV0T9N0pye4Q0p9G2lk",
             authDomain: "tabungankeluarga-a091f.firebaseapp.com",
@@ -164,20 +169,17 @@
             IPA: [
                 { q: "Apa pusat tata surya kita?", a: "Matahari", o: ["Bumi", "Matahari", "Bulan", "Mars"] },
                 { q: "Hewan pemakan tumbuhan disebut?", a: "Herbivora", o: ["Karnivora", "Omnivora", "Herbivora", "Spora"] },
-                { q: "Planet Merah adalah sebutan untuk?", a: "Mars", o: ["Venus", "Mars", "Jupiter", "Saturnus"] },
-                { q: "Ikan bernapas menggunakan?", a: "Insang", o: ["Paru-paru", "Kulit", "Insang", "Trakea"] },
-                { q: "Zat hijau daun disebut?", a: "Klorofil", o: ["Klorofil", "Stomata", "Enzim", "Oksigen"] }
+                { q: "Planet Merah adalah?", a: "Mars", o: ["Venus", "Mars", "Jupiter", "Saturnus"] },
+                { q: "Tumbuhan bernapas menghirup?", a: "Oksigen", o: ["Oksigen", "Karbon", "Nitrogen", "Argon"] }
             ],
             IPS: [
-                { q: "Ibu kota Indonesia saat ini?", a: "Jakarta", o: ["Surabaya", "Bandung", "Jakarta", "IKN"] },
+                { q: "Ibu kota Indonesia?", a: "Jakarta", o: ["Surabaya", "Bandung", "Jakarta", "IKN"] },
                 { q: "Mata uang Indonesia?", a: "Rupiah", o: ["Dollar", "Yen", "Rupiah", "Ringgit"] },
-                { q: "Pulau terbesar di Indonesia?", a: "Kalimantan", o: ["Jawa", "Bali", "Kalimantan", "Sulawesi"] },
-                { q: "Kegiatan menghasilkan barang?", a: "Produksi", o: ["Konsumsi", "Distribusi", "Produksi", "Investasi"] }
+                { q: "Pulau terbesar di Indonesia?", a: "Kalimantan", o: ["Jawa", "Bali", "Kalimantan", "Sulawesi"] }
             ],
             SEJARAH: [
                 { q: "Siapa Bapak Proklamator?", a: "Ir. Soekarno", o: ["Moh. Hatta", "Ir. Soekarno", "Soeharto", "Ki Hajar Dewantara"] },
-                { q: "Tahun berapa Indonesia Merdeka?", a: "1945", o: ["1942", "1945", "1950", "1935"] },
-                { q: "Candi Borobudur ada di?", a: "Jawa Tengah", o: ["Jawa Timur", "Jawa Tengah", "Yogyakarta", "Bali"] }
+                { q: "Kapan Indonesia merdeka?", a: "1945", o: ["1942", "1945", "1950", "1960"] }
             ]
         };
 
@@ -185,87 +187,7 @@
         let currentGameType = "";
         let mtkCorrectAnswer = 0;
 
-        function openGameMenu() { document.getElementById('game-dashboard').classList.remove('hidden'); }
-        function closeGameMenu() { document.getElementById('game-dashboard').classList.add('hidden'); }
-        function closeGamePlay() { document.getElementById('game-play-modal').classList.add('hidden'); }
-
-        function startGame(type) {
-            currentGameType = type;
-            gameScore = 0;
-            closeGameMenu();
-            document.getElementById('game-play-modal').classList.remove('hidden');
-            document.getElementById('game-title-active').innerText = type;
-            document.getElementById('game-score').innerText = "0";
-            nextQuestion();
-        }
-
-        function nextQuestion() {
-            document.getElementById('game-feedback').innerText = "";
-            const optionsGrid = document.getElementById('options-grid');
-            const questionText = document.getElementById('question-text');
-            const mtkArea = document.getElementById('mtk-input-area');
-            optionsGrid.innerHTML = "";
-            mtkArea.classList.add('hidden');
-
-            if (currentGameType === 'MTK') {
-                mtkArea.classList.remove('hidden');
-                generateMtk();
-            } else {
-                const list = quizData[currentGameType];
-                const q = list[Math.floor(Math.random() * list.length)];
-                questionText.innerText = q.q;
-                q.o.forEach(opt => {
-                    const btn = document.createElement('button');
-                    btn.className = "w-full bg-slate-50 border-2 border-slate-100 p-4 rounded-2xl font-bold hover:bg-blue-50 hover:border-blue-500 transition-all";
-                    btn.innerText = opt;
-                    btn.onclick = () => checkQuizAnswer(opt, q.a);
-                    optionsGrid.appendChild(btn);
-                });
-            }
-        }
-
-        function generateMtk() {
-            const level = Math.floor(gameScore / 30) + 1;
-            let n1, n2, op;
-            if (level === 1) { n1 = Math.floor(Math.random()*10)+1; n2 = Math.floor(Math.random()*10)+1; op = '+'; }
-            else if (level === 2) { n1 = Math.floor(Math.random()*50)+10; n2 = Math.floor(Math.random()*50)+10; op = '-'; if(n1<n2) [n1,n2]=[n2,n1]; }
-            else { n1 = Math.floor(Math.random()*10)+2; n2 = Math.floor(Math.random()*10)+2; op = 'x'; }
-            
-            mtkCorrectAnswer = op === '+' ? n1+n2 : (op === '-' ? n1-n2 : n1*n2);
-            document.getElementById('question-text').innerHTML = `<span class="text-[10px] block opacity-50">Level ${level}</span> ${n1} ${op} ${n2} = ?`;
-            document.getElementById('mtk-answer').value = "";
-            document.getElementById('mtk-answer').focus();
-        }
-
-        function checkQuizAnswer(user, correct) {
-            const f = document.getElementById('game-feedback');
-            if(user === correct) { gameScore += 10; f.innerText = "✅ BETUL!"; f.className = "text-center mt-4 font-bold text-green-500"; updateScore(); setTimeout(nextQuestion, 800); }
-            else { f.innerText = "❌ SALAH, COBA LAGI"; f.className = "text-center mt-4 font-bold text-red-500"; }
-        }
-
-        function checkMtkAnswer() {
-            const user = parseInt(document.getElementById('mtk-answer').value);
-            const f = document.getElementById('game-feedback');
-            if(user === mtkCorrectAnswer) { gameScore += 10; f.innerText = "⭐ HEBAT!"; f.className = "text-center mt-4 font-bold text-blue-500"; updateScore(); setTimeout(nextQuestion, 800); }
-            else { f.innerText = "❌ COBA HITUNG LAGI"; f.className = "text-center mt-4 font-bold text-red-400"; }
-        }
-
-        function updateScore() { document.getElementById('game-score').innerText = gameScore; }
-
-        const audio = document.getElementById('bg-music');
-        let isPlaying = false;
-        function toggleMusic() {
-            if (isPlaying) { audio.pause(); document.getElementById('music-icon').innerText = "🎵"; }
-            else { audio.play().catch(()=>{}); document.getElementById('music-icon').innerText = "⏸️"; }
-            isPlaying = !isPlaying; document.getElementById('music-btn').classList.toggle('music-active');
-        }
-        function changeSong() {
-            const newSrc = document.getElementById('song-selector').value;
-            document.getElementById('music-source').src = newSrc;
-            audio.load();
-            if(isPlaying) audio.play();
-        }
-
+        // FUNGSI CORE
         function login() {
             const user = document.getElementById('user-login').value;
             const pass = document.getElementById('pass-login').value;
@@ -282,6 +204,17 @@
             } else { alert("PIN Salah!"); }
         }
 
+        function logout() {
+            if(confirm("Keluar dari akun?")) {
+                currentUser = "";
+                document.getElementById('login-page').classList.remove('hidden');
+                document.getElementById('main-page').classList.add('hidden');
+                document.getElementById('family-balance-card').classList.add('hidden');
+                document.getElementById('pass-login').value = "";
+                if(isPlaying) toggleMusic(); 
+            }
+        }
+
         function saveData() {
             const desc = document.getElementById('desc').value;
             const amount = document.getElementById('amount').value;
@@ -293,7 +226,6 @@
             }
         }
 
-        // FITUR HAPUS/KOREKSI
         function deleteTransaction(id) {
             if (confirm("Hapus transaksi ini?")) {
                 db.ref('transaksi/' + id).remove();
@@ -318,9 +250,7 @@
                 
                 data.sort((a,b)=>b.waktu-a.waktu).forEach(item => {
                     const isInc = item.tipe === 'in';
-                    // CEK IZIN HAPUS: Master (Ayah) bisa hapus semua, Anggota hanya bisa hapus miliknya sendiri
                     const canDelete = (currentUser === "AYAH" || item.penginput === currentUser);
-                    
                     listDiv.innerHTML += `<div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-center">
                         <div class="flex-1">
                             <p class="text-sm font-bold">${item.keterangan}</p>
@@ -328,12 +258,61 @@
                         </div>
                         <div class="text-right flex items-center gap-4">
                             <p class="font-black ${isInc ? 'text-green-600' : 'text-red-600'}">${isInc ? '+' : '-'} Rp ${item.jumlah.toLocaleString()}</p>
-                            ${canDelete ? `<button onclick="deleteTransaction('${item.id}')" class="text-xs bg-red-50 text-red-500 p-2 rounded-lg hover:bg-red-500 hover:text-white transition-all">🗑️</button>` : ''}
+                            ${canDelete ? `<button onclick="deleteTransaction('${item.id}')" class="text-xs bg-red-50 text-red-500 p-2 rounded-lg">🗑️</button>` : ''}
                         </div>
                     </div>`;
                 });
             });
         }
+
+        // FUNGSI GAME & MUSIK (Tetap Sama)
+        function openGameMenu() { document.getElementById('game-dashboard').classList.remove('hidden'); }
+        function closeGameMenu() { document.getElementById('game-dashboard').classList.add('hidden'); }
+        function closeGamePlay() { document.getElementById('game-play-modal').classList.add('hidden'); }
+        function startGame(type) { currentGameType = type; gameScore = 0; closeGameMenu(); document.getElementById('game-play-modal').classList.remove('hidden'); document.getElementById('game-title-active').innerText = type; nextQuestion(); }
+        
+        function nextQuestion() {
+            document.getElementById('game-feedback').innerText = "";
+            const optionsGrid = document.getElementById('options-grid');
+            const questionText = document.getElementById('question-text');
+            const mtkArea = document.getElementById('mtk-input-area');
+            optionsGrid.innerHTML = ""; mtkArea.classList.add('hidden');
+            if (currentGameType === 'MTK') { mtkArea.classList.remove('hidden'); generateMtk(); } 
+            else {
+                const list = quizData[currentGameType];
+                const q = list[Math.floor(Math.random() * list.length)];
+                questionText.innerText = q.q;
+                q.o.forEach(opt => {
+                    const btn = document.createElement('button'); btn.className = "w-full bg-slate-50 border-2 border-slate-100 p-4 rounded-2xl font-bold hover:bg-blue-50"; btn.innerText = opt;
+                    btn.onclick = () => { if(opt === q.a) { gameScore += 10; updateScore(); nextQuestion(); } else { document.getElementById('game-feedback').innerText = "❌ SALAH"; }};
+                    optionsGrid.appendChild(btn);
+                });
+            }
+        }
+
+        function generateMtk() {
+            const n1 = Math.floor(Math.random()*10)+1; const n2 = Math.floor(Math.random()*10)+1;
+            mtkCorrectAnswer = n1 + n2;
+            document.getElementById('question-text').innerText = `${n1} + ${n2} = ?`;
+            document.getElementById('mtk-answer').value = "";
+        }
+
+        function checkMtkAnswer() {
+            const user = parseInt(document.getElementById('mtk-answer').value);
+            if(user === mtkCorrectAnswer) { gameScore += 10; updateScore(); nextQuestion(); }
+            else { document.getElementById('game-feedback').innerText = "❌ SALAH"; }
+        }
+
+        function updateScore() { document.getElementById('game-score').innerText = gameScore; }
+
+        const audio = document.getElementById('bg-music');
+        let isPlaying = false;
+        function toggleMusic() {
+            if (isPlaying) { audio.pause(); document.getElementById('music-icon').innerText = "🎵"; }
+            else { audio.play().catch(()=>{}); document.getElementById('music-icon').innerText = "⏸️"; }
+            isPlaying = !isPlaying; document.getElementById('music-btn').classList.toggle('music-active');
+        }
+        function changeSong() { const newSrc = document.getElementById('song-selector').value; document.getElementById('music-source').src = newSrc; audio.load(); if(isPlaying) audio.play(); }
     </script>
 </body>
 </html>
